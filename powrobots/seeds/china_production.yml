@@ -1,0 +1,42 @@
+# China industrial robot production — official NBS data
+
+source: "China National Bureau of Statistics"
+
+records:
+  - year: 2024
+    metric: "industrial_robot_installations"
+    value: 295000
+    unit: "units"
+    global_share_pct: 54
+    source_ref: "IFR World Robotics 2025"
+    notes: "China installed 54% of global industrial robots in 2024"
+
+  - year: 2025
+    metric: "industrial_robot_production"
+    value: 773074
+    unit: "units"
+    yoy_growth_pct: 28
+    source_ref: "China NBS"
+    notes: "Annual production figure"
+
+  - period: "2026-01 to 2026-07"
+    metric: "industrial_robot_production"
+    value: 635056
+    unit: "units"
+    yoy_growth_pct: 28.5
+    source_ref: "China NBS"
+    notes: "January-July 2026 cumulative production"
+
+  - year: 2024
+    metric: "uk_industrial_robot_installations"
+    value: 2500
+    unit: "units"
+    source_ref: "IFR"
+    notes: "Down from 3800 in 2023 (tax incentive spike)"
+
+  - year: 2025
+    metric: "chinese_brand_domestic_market_share"
+    value: 55
+    unit: "percent"
+    source_ref: "Estun/MIR"
+    notes: "Up from 29% in 2020"

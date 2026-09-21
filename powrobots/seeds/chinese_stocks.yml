@@ -1,0 +1,65 @@
+# Chinese robotics stocks — mapped to POW graph nodes
+
+- id: estun
+  name: "Estun Automation"
+  tickers: ["002747.SZ", "2715.HK"]
+  country: CN
+  pow_node: "robots + motion_control + servo"
+  notes: "#1 in China industrial robot shipments 2025 (MIR)"
+  domestic_share_growth: "29% (2020) → 55% (2025)"
+  added_at: "2026-09-21"
+  source: "HKEX News, Estun IR"
+
+- id: siasun
+  name: "SIASUN"
+  tickers: ["300024.SZ"]
+  country: CN
+  pow_node: "industrial_robots + automation_systems"
+  notes: "State-backed robot manufacturer, Shenzhen-listed"
+  added_at: "2026-09-21"
+  source: "Shenzhen Stock Exchange"
+
+- id: efort
+  name: "EFORT"
+  tickers: ["688165.SH"]
+  country: CN
+  pow_node: "industrial_robots + automation_systems"
+  notes: "Shanghai STAR Market listed"
+  added_at: "2026-09-21"
+  source: "Shanghai Stock Exchange"
+
+- id: leader_harmonic
+  name: "Leader Harmonious Drive"
+  tickers: ["688017.SH"]
+  country: CN
+  pow_node: "harmonic_reducers"
+  notes: "Key Chinese harmonic reducer supplier, used by domestic robot OEMs"
+  added_at: "2026-09-21"
+  source: "Shanghai Stock Exchange"
+
+- id: shuanghuan
+  name: "Shuanghuan Driveline"
+  tickers: ["002472.SZ"]
+  country: CN
+  pow_node: "precision_reducers + rv_reducers"
+  notes: "RV and precision gearbox manufacturer"
+  added_at: "2026-09-21"
+  source: "Sina Finance"
+
+- id: dobot
+  name: "DOBOT"
+  tickers: ["2432.HK"]
+  country: CN
+  pow_node: "cobots + embodied_robots"
+  notes: "Collaborative robot manufacturer, HKEX listed"
+  added_at: "2026-09-21"
+  source: "HKEX News"
+
+- id: ubtech
+  name: "UBTECH Robotics"
+  tickers: ["9880.HK"]
+  country: CN
+  pow_node: "humanoids + embodied_robots"
+  notes: "Humanoid robot manufacturer, HKEX listed"
+  added_at: "2026-09-21"
+  source: "HKEX News"

@@ -1,8 +1,18 @@
 # AGENTS.md — POWRobots
 
-## What This Is
+## Core Thesis
 
-UK-first physical-economy data garden for robotics. Continuously records UK robot adoption, supply chains, component availability, prices, trade flows, integration capacity, repair capacity and skills demand.
+Track the physical cost and availability of building, importing, operating and repairing robots — beginning in China and ending in the UK.
+
+## The Seven Gardens
+
+1. **Robot Catalogue / BOM Graph** — ROS, OEM specs, manuals, compatibility
+2. **China Factory** — NBS production, MIR/GGII, corporate filings, China prices, LCSC/RBTX
+3. **Global Flow** — UN Comtrade and HS-code graph
+4. **UK Landing** — HMRC trade/traders + UK distributor prices/inventory
+5. **UK Adoption** — tenders, grants, integrators, deployments, Companies House
+6. **UK Aftermarket** — used robots, parts, repairs, technician demand, apprenticeships
+7. **Equity Graph** — China + UK + Japan/Germany suppliers mapped to each layer
 
 ## How to Run
 
@@ -13,50 +23,35 @@ POWROBOTS_DB=/tmp/test.db python3 -m pytest tests/ -v
 # Initialize DB
 python3 -m powrobots.shared.db
 
-# Check status
-python3 -m powrobots.shared.db status
-```
-
-## What Belongs Here
-
-**powrobots** owns: robots, robot models, BOMs, integrators, installations, failures, repair skills, service coverage, deployment economics, UK trade, UK procurement, UKRI grants, skills/labour, used market, component baskets.
-
-**powproducts** owns: generic physical-product primitives (product, manufacturer, MPN, price, availability).
-
-**powrepair** owns: generic repair/service primitives.
-
-**powstocks** owns: equity prices, L2, RNS, market response.
-
-## File Layout
-
-```
-powrobots/
-├── shared/           db.py, persist.py
-├── core/             enums.py
-├── collectors/       base.py + per-source collectors
-├── seeds/            manufacturers, robot_models, hs_codes, etc.
-├── layer1/           manifests/
-├── registry/         sources.yaml
-├── parser/           (planned)
-tests/
-warehouse/
-docs/                 northstar.md, review.md
+# Status
+powrobots status
+powrobots sources
+powrobots collect hmrc_traders
+powrobots validate
 ```
 
 ## Source Priority
 
-### P0 — Build Now
-- Companies House
+### P0 — Open / No Auth
+- HMRC UK Trade Info (trader API, completely open)
 - UKRI Gateway to Research
-- Mouser (needs API key)
-- eBay Browse (needs app ID)
+- robot-descriptions.py
 - ROS/URDF repositories
-
-### P1 — Next Phase
-- HMRC trade statistics
-- Contracts Finder / Find a Tender
-- BARA directory
-- Apprenticeships
-- ONS PPI
-- BGS minerals
+- RBTX/igus (robot pricing China+UK+EU)
 - OPSS safety
+- BARA directory
+- BGS minerals
+
+### P0 — Needs API Key (free)
+- Companies House
+- Mouser
+- Farnell/element14
+- LCSC (China component pricing)
+- eBay UK Browse
+
+### P1 — Later
+- UN Comtrade
+- HMRC bulk trade files
+- ONS PPI
+- Adzuna jobs
+- Apprenticeships

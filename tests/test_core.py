@@ -314,6 +314,25 @@ class TestSeeds:
         assert 'fanuc' in manufacturers
         assert 'kuka' in manufacturers
 
+    def test_chinese_stocks_seed(self):
+        import yaml
+        path = os.path.join(os.path.dirname(__file__), '..', 'powrobots', 'seeds', 'chinese_stocks.yml')
+        with open(path) as f:
+            data = yaml.safe_load(f)
+        assert len(data) >= 5
+        ids = [s['id'] for s in data]
+        assert 'estun' in ids
+        assert 'leader_harmonic' in ids
+
+    def test_china_production_seed(self):
+        import yaml
+        path = os.path.join(os.path.dirname(__file__), '..', 'powrobots', 'seeds', 'china_production.yml')
+        with open(path) as f:
+            data = yaml.safe_load(f)
+        records = data.get('records', [])
+        assert len(records) >= 3
+        assert records[0]['source_ref'] == 'IFR World Robotics 2025'
+
 
 # =============================================================================
 # COLLECTORS
@@ -326,23 +345,31 @@ class TestCollectors:
         from powrobots.collectors.mouser import MouserCollector
         from powrobots.collectors.ebay_uk import EbayUkCollector
         from powrobots.collectors.hmrc_trade import HmrcTradeCollector
+        from powrobots.collectors.hmrc_traders import HmrcTraderCollector
         from powrobots.collectors.contracts_finder import ContractsFinderCollector
         from powrobots.collectors.opss_safety import OpsSafetyCollector
         from powrobots.collectors.bara_directory import BaraDirectoryCollector
         from powrobots.collectors.apprenticeships import ApprenticeshipCollector
         from powrobots.collectors.ons_ppi import OnsPpiCollector
         from powrobots.collectors.bgs_minerals import BgsMineralsCollector
+        from powrobots.collectors.rbtx import RbtxCollector
+        from powrobots.collectors.lcsc import LcscCollector
+        from powrobots.collectors.farnell import FarnellCollector
         assert CompaniesHouseCollector.SOURCE_ID == 'companies_house'
         assert UkriGtrCollector.SOURCE_ID == 'ukri_gtr'
         assert MouserCollector.SOURCE_ID == 'mouser'
         assert EbayUkCollector.SOURCE_ID == 'ebay_uk'
         assert HmrcTradeCollector.SOURCE_ID == 'hmrc_trade'
+        assert HmrcTraderCollector.SOURCE_ID == 'hmrc_traders'
         assert ContractsFinderCollector.SOURCE_ID == 'contracts_finder'
         assert OpsSafetyCollector.SOURCE_ID == 'opss_safety'
         assert BaraDirectoryCollector.SOURCE_ID == 'bara_directory'
         assert ApprenticeshipCollector.SOURCE_ID == 'find_apprenticeship'
         assert OnsPpiCollector.SOURCE_ID == 'ons_ppi'
         assert BgsMineralsCollector.SOURCE_ID == 'bgs_minerals'
+        assert RbtxCollector.SOURCE_ID == 'rbtx'
+        assert LcscCollector.SOURCE_ID == 'lcsc'
+        assert FarnellCollector.SOURCE_ID == 'farnell'
 
     def test_collector_rights_blocked(self, temp_db):
         from powrobots.collectors.base import BaseCollector
