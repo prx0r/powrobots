@@ -1,0 +1,157 @@
+# Component basket — robot BOM representative components
+# ~10-30 per category for initial tracking
+
+servo_motors:
+  - name: "FANUC αiA4/4000"
+    manufacturer: fanuc
+    category: servo_motor
+    notes: "High-power servo for large industrial arms"
+
+  - name: "KUKA KR C5 servo module"
+    manufacturer: kuka
+    category: servo_motor
+    notes: "KUKA proprietary servo"
+
+  - name: "Yaskawa Sigma-7 SGM7J"
+    manufacturer: yaskawa
+    category: servo_motor
+    notes: "50W-2kW AC servo"
+
+  - name: "Siemens SIMOTICS 1FK7"
+    manufacturer: siemens
+    category: servo_motor
+    notes: "Permanent magnet synchronous motor"
+
+  - name: "ABB M3HP/M3JP"
+    manufacturer: abb
+    category: servo_motor
+    notes: "Induction and synchronous servo motors"
+
+servo_drives:
+  - name: "FANUC αi Servo Amplifier"
+    manufacturer: fanuc
+    category: servo_drive
+
+  - name: "KUKA KR C5 power module"
+    manufacturer: kuka
+    category: servo_drive
+
+  - name: "Yaskawa Sigma-7 SGD7S"
+    manufacturer: yaskawa
+    category: servo_drive
+
+  - name: "Siemens SINAMICS S210"
+    manufacturer: siemens
+    category: servo_drive
+
+encoders:
+  - name: "Heidenhain ERA 4x"
+    manufacturer: heidenhain
+    category: encoder_absolute
+    notes: "Absolute angle encoder"
+
+  - name: "Renishaw RESOLUTE"
+    manufacturer: renishaw
+    category: encoder_absolute
+    notes: "Absolute linear and rotary encoder"
+
+  - name: "Sick AFS60"
+    manufacturer: sick
+    category: encoder_absolute
+
+gearboxes:
+  - name: "Harmonic Drive CSD-25"
+    manufacturer: harmonic_drive
+    category: gearbox_harmonic
+    notes: "Compact strain-wave gear"
+
+  - name: "Nidec Shinwa Cyclo"
+    manufacturer: nidec
+    category: gearbox_cycloidal
+
+  - name: "Neugart PLE040"
+    manufacturer: neugart
+    category: planetary_gearbox
+
+bearings:
+  - name: "SKF 6205"
+    manufacturer: skf
+    category: bearing
+    notes: "Deep groove ball bearing"
+
+  - name: "NSK 7930A"
+    manufacturer: nsk
+    category: bearing
+    notes: "Angular contact ball bearing"
+
+controllers:
+  - name: "FANUC R-30iB Plus"
+    manufacturer: fanuc
+    category: controller
+    notes: "Robot controller"
+
+  - name: "KUKA KR C5"
+    manufacturer: kuka
+    category: controller
+    notes: "Robot controller"
+
+  - name: "ABB OmniCore"
+    manufacturer: abb
+    category: controller
+
+plcs:
+  - name: "Siemens S7-1500"
+    manufacturer: siemens
+    category: plc
+
+  - name: "Allen-Bradley ControlLogix"
+    manufacturer: rockwell
+    category: plc
+
+  - name: "Beckhoff CX2040"
+    manufacturer: beckhoff
+    category: industrial_pc
+    notes: "Embedded PC / soft PLC"
+
+safety:
+  - name: "SICK microScan3"
+    manufacturer: sick
+    category: safety_scanner
+    notes: "Safety laser scanner"
+
+  - name: "Pilz PSENscan"
+    manufacturer: pilz
+    category: safety_scanner
+
+  - name: "Keyence SL-V"
+    manufacturer: keyence
+    category: light_curtain
+
+vision:
+  - name: "Cognex In-Sight 9000"
+    manufacturer: cognex
+    category: camera
+    notes: "Industrial vision system"
+
+  - name: "Basler ace 2"
+    manufacturer: basler
+    category: camera
+
+  - name: "Intel RealSense D455"
+    manufacturer: intel
+    category: depth_camera
+
+grippers:
+  - name: "Robotiq 2F-85"
+    manufacturer: robotiq
+    category: gripper
+    notes: "Adaptive gripper"
+
+  - name: "Schunk EGP"
+    manufacturer: schunk
+    category: gripper
+    notes: "Electric parallel gripper"
+
+  - name: "Festo DHPS"
+    manufacturer: festo
+    category: gripper
