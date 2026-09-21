@@ -34,6 +34,13 @@ class BaseCollector:
     PARSER_ID = ''
     PARSER_VERSION = '1.0.0'
 
+    def __init__(self):
+        self.requests_attempted = 0
+        self.requests_200 = 0
+        self.requests_403 = 0
+        self.requests_429 = 0
+        self.requests_failed = 0
+
     def fetch(self):
         raise NotImplementedError
 
