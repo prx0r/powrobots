@@ -1,0 +1,46 @@
+# ROS/URDF repositories — robot description sources
+
+- id: universal_robots
+  name: "Universal Robots ROS"
+  url: "https://github.com/ros-industrial/universal_robot"
+  manufacturer: universal_robots
+  format: urdf
+  models: [ur3, ur3e, ur5, ur5e, ur10, ur10e, ur16e, ur20, ur30]
+  licence: BSD-3-Clause
+  added_at: "2026-09-21"
+
+- id: abb_ros
+  name: "ABB ROS-Industrial"
+  url: "https://github.com/ros-industrial/abb"
+  manufacturer: abb
+  format: urdf
+  models: [irb120, irb140, irb1600, irb2400, irb4600, irb6640, irb6700]
+  licence: BSD-3-Clause
+  added_at: "2026-09-21"
+
+- id: fanuc_ros
+  name: "FANUC ROS-Industrial"
+  url: "https://github.com/ros-industrial/fanuc"
+  manufacturer: fanuc
+  format: urdf
+  models: [lrmate200id, m10ia, m20ia, m710ic]
+  licence: BSD-3-Clause
+  added_at: "2026-09-21"
+
+- id: kuka_ros
+  name: "KUKA ROS"
+  url: "https://github.com/kuka-ros/kuka"
+  manufacturer: kuka
+  format: urdf
+  models: [iiwa14, iiwa7, kr5, kr10, kr210]
+  licence: BSD-3-Clause
+  added_at: "2026-09-21"
+
+- id: motoman_ros
+  name: "Yaskawa/Motoman ROS-Industrial"
+  url: "https://github.com/ros-industrial/motoman"
+  manufacturer: yaskawa
+  format: urdf
+  models: [gp8, gp25, mh24, mh50]
+  licence: BSD-3-Clause
+  added_at: "2026-09-21"

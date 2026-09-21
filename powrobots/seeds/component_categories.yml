@@ -1,0 +1,121 @@
+# Component categories — robot BOM taxonomy
+
+- id: servo_motor
+  name: "Servo Motor"
+  parent: actuation
+  description: "Precision motor with feedback for motion control"
+
+- id: stepper_motor
+  name: "Stepper Motor"
+  parent: actuation
+  description: "Discrete-step motor for positioning"
+
+- id: servo_drive
+  name: "Servo Drive"
+  parent: actuation
+  description: "Amplifier/controller for servo motors"
+
+- id: encoder_absolute
+  name: "Absolute Encoder"
+  parent: sensing
+  description: "Position sensor with absolute reference"
+
+- id: encoder_incremental
+  name: "Incremental Encoder"
+  parent: sensing
+  description: "Position sensor with relative pulses"
+
+- id: gearbox_harmonic
+  name: "Harmonic Gearbox"
+  parent: transmission
+  description: "Strain-wave gear for precision robotics"
+
+- id: gearbox_cycloidal
+  name: "Cycloidal Gearbox"
+  parent: transmission
+  description: "High-torque precision reducer"
+
+- id: planetary_gearbox
+  name: "Planetary Gearbox"
+  parent: transmission
+  description: "Epicyclic gear train"
+
+- id: bearing
+  name: "Bearing"
+  parent: mechanical
+  description: "Rolling element bearing"
+
+- id: linear_rail
+  name: "Linear Rail"
+  parent: mechanical
+  description: "Linear motion guide"
+
+- id: controller
+  name: "Robot Controller"
+  parent: control
+  description: "Main robot control unit"
+
+- id: plc
+  name: "PLC"
+  parent: control
+  description: "Programmable Logic Controller"
+
+- id: industrial_pc
+  name: "Industrial PC"
+  parent: control
+  description: "Ruggedized computing platform"
+
+- id: safety_scanner
+  name: "Safety Scanner"
+  parent: safety
+  description: "Laser-based area scanner"
+
+- id: gripper
+  name: "Gripper"
+  parent: tooling
+  description: "End-of-arm gripping device"
+
+- id: camera
+  name: "Industrial Camera"
+  parent: vision
+  description: "Machine vision camera"
+
+- id: depth_camera
+  name: "Depth Camera"
+  parent: vision
+  description: "3D sensing camera"
+
+- id: lidar
+  name: "LiDAR"
+  parent: vision
+  description: "Light Detection and Ranging sensor"
+
+- id: force_torque_sensor
+  name: "Force/Torque Sensor"
+  parent: sensing
+  description: "Multi-axis force and torque measurement"
+
+- id: teach_pendant
+  name: "Teach Pendant"
+  parent: control
+  description: "Handheld robot programming device"
+
+- id: power_supply
+  name: "Power Supply"
+  parent: power
+  description: "AC/DC power conversion"
+
+- id: connector
+  name: "Connector"
+  parent: electrical
+  description: "Electrical/mechanical connection"
+
+- id: cable
+  name: "Cable"
+  parent: electrical
+  description: "Electrical cable/harness"
+
+- id: battery
+  name: "Battery"
+  parent: power
+  description: "Energy storage for mobile robots"

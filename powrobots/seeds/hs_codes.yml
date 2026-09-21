@@ -1,0 +1,79 @@
+# UK Trade Tariff — robotics-relevant HS codes
+
+- code: "847950"
+  description: "Industrial robots for multiple functions"
+  robotics_relevance: "primary"
+  confidence: high
+  added_at: "2026-09-21"
+
+- code: "847910"
+  description: "Plants for assembling electrical/electronic components"
+  robotics_relevance: "high"
+  confidence: high
+  added_at: "2026-09-21"
+
+- code: "8501"
+  description: "Electric motors and generators"
+  robotics_relevance: "high"
+  confidence: high
+  added_at: "2026-09-21"
+
+- code: "8503"
+  description: "Parts for electric motors"
+  robotics_relevance: "high"
+  confidence: high
+  added_at: "2026-09-21"
+
+- code: "8483"
+  description: "Transmission shafts, gears, gearboxes"
+  robotics_relevance: "high"
+  confidence: high
+  added_at: "2026-09-21"
+
+- code: "8482"
+  description: "Ball or roller bearings"
+  robotics_relevance: "high"
+  confidence: high
+  added_at: "2026-09-21"
+
+- code: "8542"
+  description: "Electronic integrated circuits"
+  robotics_relevance: "medium"
+  confidence: high
+  added_at: "2026-09-21"
+
+- code: "8544"
+  description: "Insulated wire, cable"
+  robotics_relevance: "medium"
+  confidence: high
+  added_at: "2026-09-21"
+
+- code: "9031"
+  description: "Measuring/checking instruments (encoders, sensors)"
+  robotics_relevance: "high"
+  confidence: high
+  added_at: "2026-09-21"
+
+- code: "8536"
+  description: "Electrical apparatus for switching (relays, contactors)"
+  robotics_relevance: "medium"
+  confidence: high
+  added_at: "2026-09-21"
+
+- code: "8504"
+  description: "Electrical transformers, converters, power supplies"
+  robotics_relevance: "medium"
+  confidence: high
+  added_at: "2026-09-21"
+
+- code: "7604"
+  description: "Aluminium bars, rods, profiles"
+  robotics_relevance: "low"
+  confidence: medium
+  added_at: "2026-09-21"
+
+- code: "7210"
+  description: "Flat-rolled iron/steel, coated"
+  robotics_relevance: "low"
+  confidence: medium
+  added_at: "2026-09-21"

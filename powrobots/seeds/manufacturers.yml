@@ -1,0 +1,246 @@
+# Robot manufacturers — UK industrial adoption priority
+
+- id: abb
+  name: ABB
+  country: CH
+  website: https://new.abb.com/products/robotics
+  type: robot_manufacturer
+  robot_types: [industrial_arm, cobot]
+  uk_distributor: ABB UK
+  added_at: "2026-09-21"
+  reason: "Major UK industrial robot supplier"
+  confidence: high
+
+- id: fanuc
+  name: FANUC
+  country: JP
+  website: https://www.fanuc.eu/uk-en
+  type: robot_manufacturer
+  robot_types: [industrial_arm, cobot, scara, delta]
+  uk_distributor: FANUC UK
+  added_at: "2026-09-21"
+  reason: "Largest industrial robot manufacturer globally"
+  confidence: high
+
+- id: kuka
+  name: KUKA
+  country: DE
+  website: https://www.kuka.com/en-gb
+  type: robot_manufacturer
+  robot_types: [industrial_arm, cobot]
+  uk_distributor: KUKA UK
+  added_at: "2026-09-21"
+  reason: "Major European robot manufacturer"
+  confidence: high
+
+- id: yaskawa
+  name: Yaskawa / Motoman
+  country: JP
+  website: https://www.motoman.com/en-gb
+  type: robot_manufacturer
+  robot_types: [industrial_arm, cobot]
+  uk_distributor: Yaskawa UK
+  added_at: "2026-09-21"
+  reason: "Major industrial robot manufacturer"
+  confidence: high
+
+- id: universal_robots
+  name: Universal Robots
+  country: DK
+  website: https://www.universal-robots.com/
+  type: robot_manufacturer
+  robot_types: [cobot]
+  uk_distributor: "Universal Robots UK"
+  added_at: "2026-09-21"
+  reason: "Market leader in collaborative robots"
+  confidence: high
+
+- id: staubli
+  name: Staubli
+  country: CH
+  website: https://www.staubli.com/en/robotics/
+  type: robot_manufacturer
+  robot_types: [industrial_arm]
+  added_at: "2026-09-21"
+  reason: "Precision industrial robots"
+  confidence: high
+
+- id: kawasaki
+  name: Kawasaki
+  country: JP
+  website: https://robotics.khi.co.jp/en/
+  type: robot_manufacturer
+  robot_types: [industrial_arm, cobot]
+  added_at: "2026-09-21"
+  reason: "Industrial robot manufacturer"
+  confidence: high
+
+- id: mitsubishi
+  name: Mitsubishi Electric
+  country: JP
+  website: https://www.mitsubishielectric.com/fa/products/robot/
+  type: robot_manufacturer
+  robot_types: [industrial_arm, scara]
+  added_at: "2026-09-21"
+  reason: "SCARA and industrial robot manufacturer"
+  confidence: high
+
+- id: epson
+  name: Epson
+  country: JP
+  website: https://www.epson.co.uk/robots
+  type: robot_manufacturer
+  robot_types: [scara, industrial_arm]
+  added_at: "2026-09-21"
+  reason: "SCARA robot manufacturer"
+  confidence: high
+
+- id: comau
+  name: Comau
+  country: IT
+  website: https://comau.com/robotics/
+  type: robot_manufacturer
+  robot_types: [industrial_arm]
+  added_at: "2026-09-21"
+  reason: "Industrial robot manufacturer"
+  confidence: high
+
+- id: omron
+  name: Omron
+  country: JP
+  website: https://www.omron.co.uk/industrial-automation/robotics
+  type: robot_manufacturer
+  robot_types: [scara, industrial_arm]
+  added_at: "2026-09-21"
+  reason: "SCARA and industrial robot manufacturer"
+  confidence: high
+
+- id: denso
+  name: Denso
+  country: JP
+  website: https://www.denso-robotics.com/en/
+  type: robot_manufacturer
+  robot_types: [industrial_arm]
+  added_at: "2026-09-21"
+  reason: "Compact industrial robot manufacturer"
+  confidence: high
+
+- id: doosan
+  name: Doosan
+  country: KR
+  website: https://www.doosanrobotics.com/
+  type: robot_manufacturer
+  robot_types: [cobot]
+  added_at: "2026-09-21"
+  reason: "Collaborative robot manufacturer"
+  confidence: high
+
+- id: techman
+  name: Techman Robot
+  country: TW
+  website: https://www.tm-robot.com/en/
+  type: robot_manufacturer
+  robot_types: [cobot]
+  added_at: "2026-09-21"
+  reason: "Vision-integrated cobot manufacturer"
+  confidence: high
+
+- id: dobot
+  name: Dobot
+  country: CN
+  website: https://www.dobot-robots.com/
+  type: robot_manufacturer
+  robot_types: [cobot, scara]
+  added_at: "2026-09-21"
+  reason: "Affordable cobot manufacturer"
+  confidence: high
+
+- id: hanwha
+  name: Hanwha
+  country: KR
+  website: https://robotics.hanwha.com/
+  type: robot_manufacturer
+  robot_types: [cobot]
+  added_at: "2026-09-21"
+  reason: "Collaborative robot manufacturer"
+  confidence: high
+
+- id: nachi
+  name: Nachi
+  country: JP
+  website: https://www.nachi.com/products/robot/
+  type: robot_manufacturer
+  robot_types: [industrial_arm]
+  added_at: "2026-09-21"
+  reason: "Industrial robot manufacturer"
+  confidence: high
+
+- id: jaka
+  name: JAKA
+  country: CN
+  website: https://www.jakarobot.com/
+  type: robot_manufacturer
+  robot_types: [cobot]
+  added_at: "2026-09-21"
+  reason: "Collaborative robot manufacturer"
+  confidence: high
+
+- id: aubo
+  name: AUBO
+  country: CN
+  website: https://www.auborobot.com/
+  type: robot_manufacturer
+  robot_types: [cobot]
+  added_at: "2026-09-21"
+  reason: "Collaborative robot manufacturer"
+  confidence: high
+
+- id: unitree
+  name: Unitree
+  country: CN
+  website: https://www.unitree.com/
+  type: robot_manufacturer
+  robot_types: [humanoid, quadruped]
+  added_at: "2026-09-21"
+  reason: "Humanoid and quadruped robot manufacturer"
+  confidence: high
+
+- id: agility
+  name: Agility Robotics
+  country: US
+  website: https://agilityrobotics.com/
+  type: robot_manufacturer
+  robot_types: [humanoid]
+  added_at: "2026-09-21"
+  reason: "Humanoid robot manufacturer (Digit)"
+  confidence: high
+
+- id: figure
+  name: Figure AI
+  country: US
+  website: https://www.figure.ai/
+  type: robot_manufacturer
+  robot_types: [humanoid]
+  added_at: "2026-09-21"
+  reason: "Humanoid robot manufacturer"
+  confidence: high
+
+- id: apptronik
+  name: Apptronik
+  country: US
+  website: https://www.apptronik.com/
+  type: robot_manufacturer
+  robot_types: [humanoid]
+  added_at: "2026-09-21"
+  reason: "Humanoid robot manufacturer (Apollo)"
+  confidence: high
+
+- id: boston_dynamics
+  name: Boston Dynamics
+  country: US
+  website: https://www.bostondynamics.com/
+  type: robot_manufacturer
+  robot_types: [quadruped, humanoid]
+  added_at: "2026-09-21"
+  reason: "Quadruped and humanoid robot manufacturer"
+  confidence: high

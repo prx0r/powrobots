@@ -1,0 +1,45 @@
+# Search vocabulary — version-controlled
+
+robotics_terms:
+  - robot
+  - robotics
+  - cobot
+  - collaborative robot
+  - industrial robot
+  - robot arm
+  - manipulator
+  - robot cell
+  - automation cell
+  - machine tending
+  - palletising
+  - pick and place
+  - AMR
+  - AGV
+  - machine vision
+
+component_terms:
+  - servo drive
+  - servo motor
+  - encoder
+  - harmonic drive
+  - cycloidal reducer
+  - teach pendant
+  - robot controller
+  - PLC
+  - mechatronics
+  - controls
+  - end of arm tooling
+  - EOAT
+  - gripper
+
+labour_terms:
+  - robot engineer
+  - robot technician
+  - automation engineer
+  - controls engineer
+  - PLC engineer
+  - mechatronics technician
+  - maintenance engineer
+  - robot programmer
+  - field service engineer robotics
+  - servo engineer
