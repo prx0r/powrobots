@@ -1,5 +1,14 @@
 """BOM resolution and substitution engine.
 
+# STALE — This module is not imported anywhere in the codebase.
+# It is complete and well-designed but unreachable.
+# To make it live:
+# 1. Populate the distributor table (Mouser, Farnell, LCSC, eBay)
+# 2. Implement API-key collectors so component_market_observation has data
+# 3. Add CLI commands: powrobots resolve <model_id>, powrobots substitutes <component_id>
+# 4. Add tests for these functions
+# 5. Wire to MCP for agent access
+
 Implements the core procurement intelligence:
 - resolve_bom: given a robot, return full BOM with prices from multiple suppliers
 - find_substitutes: given a part, return alternatives with evidence
