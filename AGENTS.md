@@ -1,300 +1,174 @@
-# AGENTS.md — POWRobots ↔ POWOps Wiring
+# AGENTS.md — POWRobots
 
-## How POWOps Monitors POWRobots
+## What this repo does
 
-POWOps reads the `collector_run` table in `warehouse/powrobots.db` via the
-`collector_db` health check type. Every time a collector runs, it logs a row
-with timing, counts, HTTP stats, and errors. POWOps queries the latest row
-per source and reports status.
+POWRobots collects, normalises, and preserves physical-economy data for the UK robotics market. It is a Layer 1 data garden — it captures reality, it doesn't model it.
 
-### The data flow
-
-```
-powrobots collect <source>
-       │
-       ▼
-BaseCollector.run()
-       │
-       ├── check_source_rights() → allowed?
-       │
-       ├── _fetch_url() → HTTP GET → store_raw() → store_acquisition()
-       │
-       ├── parse() → insert_source_record() → upsert_*()
-       │
-       └── log_run() → INSERT INTO collector_run
-                           │
-                           ▼
-                    warehouse/powrobots.db
-                           │
-                    ┌──────┴──────┐
-                    │             │
-               powops reads   powrobots CLI
-               via garden.py  reads directly
-               collector_db
-                    │
-                    ▼
-              SourceStatus
-                    │
-          ┌─────────┼─────────┐
-          │         │         │
-       CLI table  MCP tools  Web API
-```
-
-### What POWOps checks
-
-For each source in `sources.yaml`, powops:
-1. Looks up the `health.check` type — for powrobots it's `collector_db`
-2. Opens `warehouse/powrobots.db`
-3. Queries `collector_run` for the latest row matching `source_id`
-4. Compares `started_at` against `max_staleness` (72h for most powrobots sources)
-5. Returns a `SourceStatus` with: status, age, records, error, evidence_level
-
-### Status values
-
-| Status | Meaning | What powops sees |
-|--------|---------|-----------------|
-| `ok` | Last run within max_staleness, no errors | `collector_run.status = 'ok'` and age < 72h |
-| `stale` | Last run exceeded max_staleness | `collector_run.status = 'ok'` but age > 72h |
-| `error` | Last run had errors | `collector_run.status = 'error'` |
-| `no_key` | API key env var not set | `source.api_key_env` not in environment |
-| `unknown` | No runs recorded | No rows in `collector_run` for this source |
-| `not_installed` | Source marked not installed | `source.status = 'not_installed'` in sources.yaml |
-
-### Evidence levels
-
-| Level | Meaning | Sources |
-|-------|---------|---------|
-| `strong` | Data-validated (heartbeat or collector_db) | All 15 powrobots sources |
-| `weak` | File mtime or PID only | Not used by powrobots |
-
----
-
-## Source Inventory — 15 Sources
-
-### Category A: Active collectors (no auth, fetches live data)
-
-These 10 sources are fully wired. They fetch live data from public endpoints,
-store raw blobs, and log collector_run rows. POWOps sees them as `ok`.
-
-| Source ID | Authority | What it does | Parser quality | Raw stored |
-|-----------|-----------|-------------|----------------|------------|
-| `hmrc_traders` | HMRC | Searches for HS 847950 (robot) traders | Stub — raw HTML | ~160KB |
-| `hmrc_trade` | HMRC | Trade statistics index page | Stub — raw HTML | ~65KB |
-| `ukri_gtr` | UKRI | Research projects XML API | **Real parser** — extracts project IDs, titles, lead orgs | ~83KB |
-| `contracts_finder` | Contracts Finder | Government procurement search | Metadata only — stores search terms + raw HTML | ~1.2MB |
-| `opss_safety` | OPSS | Product safety alerts (machinery) | Stub — raw HTML | ~170KB |
-| `bara_directory` | BARA | Automate UK member directory | Stub — raw HTML | ~114B |
-| `bgs_minerals` | BGS | World Mineral Statistics page | Stub — raw HTML | ~80KB |
-| `ons_ppi` | ONS | Inflation/price indices page | Stub — raw HTML | ~70KB |
-| `find_apprenticeship` | ESFA | Apprenticeship search page | Stub — raw HTML | ~68KB |
-| `rbtx` | RBTX/igus | Robot marketplace (UK + China) | Metadata only — stores market + raw HTML | ~478KB |
-
-**Total raw data collected:** ~1.8MB across 20 blobs, 14 source records
-
-### Category B: API-key sources (parser complete, fetch not implemented)
-
-These 5 sources have complete parsers that extract structured data, but their
-`fetch()` methods return `None` — they don't make API calls yet. When the API
-key is set, powops will show `no_key` instead of `error`.
-
-| Source ID | Authority | Env var needed | Parser does | Entity graph |
-|-----------|-----------|---------------|-------------|--------------|
-| `companies_house` | Companies House | `COMPANIES_HOUSE_API_KEY` | Extracts company number, name, status, address | `upsert_organisation` |
-| `mouser` | Mouser Electronics | `MOUSER_API_KEY` | Extracts MPN, brand, price, stock, status | `upsert_component` |
-| `farnell` | Farnell/element14 | `FARNELL_API_KEY` | Extracts MPN, brand, price, stock, lead time | `upsert_component` |
-| `lcsc` | LCSC Electronics | `LCSC_API_KEY` | Extracts MPN, brand, price, stock, grade | `upsert_component` |
-| `ebay_uk` | eBay UK | `EBAY_APP_ID` | Extracts item ID, title, price, condition, seller | `insert_source_record` |
-
-**To activate:** Set the env var, then `fetch()` must be implemented in each
-collector. The parsers are ready — they just need real HTTP calls.
-
----
-
-## Database Schema (what powops reads)
-
-### collector_run table
-
-```sql
--- This is the table powops queries via collector_db health check
-CREATE TABLE collector_run (
-    run_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    source_id TEXT NOT NULL,          -- matches sources.yaml id
-    started_at TEXT NOT NULL,         -- ISO timestamp
-    finished_at TEXT,                 -- ISO timestamp
-    status TEXT DEFAULT 'running',    -- 'ok', 'error', 'blocked'
-    raw_fetched INTEGER DEFAULT 0,    -- blobs fetched
-    raw_new INTEGER DEFAULT 0,        -- new (not deduped)
-    source_records_new INTEGER DEFAULT 0,
-    source_records_updated INTEGER DEFAULT 0,
-    source_records_invalid INTEGER DEFAULT 0,
-    error TEXT,                       -- JSON-encoded error list
-    duration_seconds REAL
-);
-```
-
-POWOps queries:
-```sql
-SELECT started_at, status, error, duration_seconds,
-       source_records_new, raw_new
-FROM collector_run
-WHERE source_id = ?
-ORDER BY run_id DESC LIMIT 1
-```
-
-### source_rights table
-
-Controls which collectors are allowed to run:
-- `open` — collector runs without auth
-- `approved` — collector needs API key (key present = allowed)
-- `terms_review` — blocked until terms reviewed
-- `blocked` — never collect
-
-### source_registry table
-
-Metadata about each source (authority, category, cadence, tier).
-Currently populated with all 15 sources.
-
----
-
-## How to run collectors
-
-```bash
-# Single source
-python3 -m powrobots.cli collect hmrc_traders
-
-# All sources
-python3 -m powrobots.cli collect all
-
-# Check what powops sees
-python3 -m powrobots.cli health
-
-# Full status
-python3 -m powrobots.cli status
-
-# Validate everything is wired
-python3 -m powrobots.cli validate
-```
-
-### Systemd timer
+## How to run
 
 ```bash
 # Install
-cp deploy/systemd/*.service ~/.config/systemd/user/
-cp deploy/systemd/*.timer ~/.config/systemd/user/
-systemctl --user daemon-reload
-systemctl --user enable --now powrobots-collect.timer
+pip install -e ".[dev]"
 
-# Check
-systemctl --user status powrobots-collect.timer
-systemctl --user status powrobots-collect.service
-journalctl --user -u powrobots-collect.service -f
+# Initialize database
+python3 -m powrobots.shared.db
+
+# Seed source rights and registry
+python3 -m powrobots.cli seed
+
+# Run all collectors
+python3 -m powrobots.cli collect all
+
+# Check status
+python3 -m powrobots.cli health
+python3 -m powrobots.cli robots
+
+# Run tests
+POWROBOTS_DB=/tmp/test.db python3 -m pytest tests/ -v
 ```
 
-Runs all collectors every 6 hours. First run 5min after boot.
+## How POWOps monitors this repo
 
----
+POWOps reads `collector_run` and `source_health` tables from `warehouse/powrobots.db` via the `collector_db` health check.
 
-## How POWOps exposes powrobots data
+```yaml
+# In powops sources.yaml:
+powrobots:
+  path: /home/ubuntu/powrobots
+  health_check: collector_db
+  db_path: warehouse/powrobots.db
+```
 
-### CLI
+### What powops checks
+
+1. Opens `warehouse/powrobots.db`
+2. Queries `collector_run` for latest row per source
+3. Compares `started_at` against `max_staleness` (72h)
+4. Returns status: ok, stale, error, no_key, unknown
+
+### Status values
+
+| Status | Meaning |
+|--------|---------|
+| ok | Last run within staleness, no errors |
+| stale | Last run exceeded max_staleness |
+| error | Last run had errors |
+| no_key | API key env var not set |
+| unknown | No runs recorded |
+
+## CLI commands
+
+| Command | Description |
+|---------|-------------|
+| `powrobots status` | Row counts per table |
+| `powrobots sources` | List registered sources |
+| `powrobots seed` | Seed source_rights + source_registry |
+| `powrobots collect <source>` | Run a collector |
+| `powrobots collect all` | Run all collectors |
+| `powrobots health` | Last collector run per source |
+| `powrobots robots` | Entity graph summary |
+| `powrobots models` | List robot models |
+| `powrobots components` | List components |
+| `powrobots organisations` | List organisations |
+| `powrobots validate` | Check everything is wired |
+
+## Collectors
+
+### Active (no auth, fetching live data)
+
+| Source | Records | What it collects |
+|--------|---------|-----------------|
+| hmrc_traders | 561 | UK businesses trading HS 847950 (industrial robots) |
+| opss_safety | 50 | Product safety alerts (machinery) |
+| contracts_finder | 20 | Government procurement notices |
+| hmrc_trade | 1 | Trade statistics index |
+| ukri_gtr | 0 | Research projects (already collected) |
+| bgs_minerals | 1 | Mineral statistics |
+| ons_ppi | 1 | Price indices |
+| bara_directory | 1 | Integrator directory (JS-blocked) |
+| find_apprenticeship | 1 | Apprenticeship landing page (JS-blocked) |
+| rbtx | 2 | Robot marketplace (JS-blocked) |
+
+### Needs API key
+
+| Source | Env var | Parser | Status |
+|--------|---------|--------|--------|
+| companies_house | COMPANIES_HOUSE_API_KEY | Complete | Working (250 companies) |
+| mouser | MOUSER_API_KEY | Complete | Needs key |
+| farnell | FARNELL_API_KEY | Complete | Needs key |
+| lcsc | LCSC_API_KEY | Complete | Needs key |
+| ebay_uk | EBAY_APP_ID | Complete (has bug) | Needs OAuth |
+
+## Entity graph
+
+| Table | Count | What |
+|-------|-------|------|
+| organisation | 856 | Companies, traders, buyers |
+| robot_model | 123 | Robot models from seeds + vendor repos |
+| robot_manufacturer | 26 | Manufacturer profiles |
+| component | 32 | Tracked components (servos, controllers, etc.) |
+| product_relation | 29 | Robot→component relationships |
+| component_manufacturer | 23 | Component→manufacturer links |
+
+### Query the entity graph
 
 ```bash
-# See all 15 powrobots sources
-python3 -m powops status | grep powrobots
-
-# See details for one source
-python3 -m powops check hmrc_traders
-
-# Full check with history
-python3 -m powops full
-
-# History for powrobots sources
-python3 -m powops history --garden powrobots
-
-# Uptime stats
-python3 -m powops uptime --source hmrc_traders
+powrobots robots          # Summary
+powrobots models          # All 123 models
+powrobots components      # All 32 components
+powrobots organisations   # First 50 organisations
 ```
 
-### MCP tools (for pi agent)
+## How to add a new collector
 
-```python
-# All powrobots sources
-powops_status(garden="powrobots")
+1. Create `powrobots/collectors/<name>.py`
+2. Subclass `BaseCollector`
+3. Set `SOURCE_ID`, `DATASET`, `PARSER_ID`
+4. Implement `fetch()` → return bytes or None
+5. Implement `parse(raw_content, raw_hash, result)` → call `insert_source_record()` + `upsert_*()`
+6. Add to `COLLECTORS` dict in `cli.py`
+7. Add to powops `sources.yaml` under `powrobots` garden with `health.check: collector_db`
+8. Run `python3 -m powrobots.cli seed`
+9. Run `python3 -m powrobots.cli collect <source_id>`
+10. powops sees it immediately
 
-# One source detail
-powops_source(source_id="hmrc_traders")
+## How to add a new API-key source
 
-# Coverage breakdown
-powops_coverage()
+1. Register for API key
+2. Set env var: `export COMPANIES_HOUSE_API_KEY=xxx`
+3. Implement `fetch()` in the collector
+4. Test: `python3 -m powrobots.cli collect <source_id>`
+5. powops reports `no_key` until env var is set, then `ok`/`error`
 
-# History
-powops_history(garden="powrobots", days=7)
+## Key files
 
-# Incidents
-powops_incidents(status="open")
+| File | Purpose |
+|------|---------|
+| `powrobots/cli.py` | CLI entry point |
+| `powrobots/collectors/base.py` | Base collector + retry + raw storage |
+| `powrobots/collectors/*.py` | 15 source collectors |
+| `powrobots/shared/db.py` | SQLite schema + seed data |
+| `powrobots/shared/persist.py` | Storage + entity graph + health |
+| `powrobots/seeds/*.yml` | Seed data (manufacturers, components, stocks) |
+| `tests/test_core.py` | 42 tests |
+| `docs/BUILD_NOTES.md` | Complete build documentation |
+| `docs/threads.md` | Open threads and decisions |
+| `docs/blockers.md` | Tracked blockers |
+| `HANDOVER.md` | What exists and what to do next |
 
-# Events
-powops_events(garden="powrobots", days=1)
-```
+## Blockers (see docs/blockers.md)
 
-### Web API
+1. Mouser/Farnell/LCSC need API keys
+2. eBay needs OAuth setup
+3. BARA/RBTX/apprenticeships are JS-rendered
+4. HMRC trade stats, ONS PPI need parsers
+5. powops can't query entity graph (by design)
 
-```
-GET /api/status                          # all sources including powrobots
-GET /api/history?garden=powrobots        # powrobots history
-GET /api/uptime                          # uptime per source
-GET /api/volume                          # volume stats
-GET /api/incidents                       # open incidents
-GET /api/events?garden=powrobots         # powrobots events
-GET /api/repos                           # GitHub CI status
-```
+## Design principles
 
-All require `?token=<TOKEN>`.
-
----
-
-## What POWOps knows about each source
-
-| Source | Status | Last Good | Records | Error | Category |
-|--------|--------|-----------|---------|-------|----------|
-| hmrc_traders | ok | <1h ago | 1 | — | uk_trade |
-| hmrc_trade | ok | <1h ago | 1 | — | uk_trade |
-| ukri_gtr | ok | <1h ago | 0 | — | grants |
-| contracts_finder | ok | <1h ago | 3 | — | procurement |
-| opss_safety | ok | <1h ago | 1 | — | safety |
-| bara_directory | ok | <1h ago | 1 | — | integrators |
-| bgs_minerals | ok | <1h ago | 1 | — | minerals |
-| ons_ppi | ok | <1h ago | 1 | — | prices |
-| find_apprenticeship | ok | <1h ago | 1 | — | labour |
-| rbtx | ok | <1h ago | 2 | — | marketplace |
-| companies_house | no_key | — | — | Missing COMPANIES_HOUSE_API_KEY | corporate |
-| mouser | no_key | — | — | Missing MOUSER_API_KEY | components |
-| farnell | no_key | — | — | Missing FARNELL_API_KEY | components |
-| lcsc | no_key | — | — | Missing LCSC_API_KEY | components |
-| ebay_uk | no_key | — | — | Missing EBAY_APP_ID | aftermarket |
-
----
-
-## How to add a new source
-
-1. Create collector in `powrobots/collectors/`
-2. Set `SOURCE_ID` and implement `fetch()` + `parse()`
-3. Add to `COLLECTORS` dict in `cli.py`
-4. Run `powrobots seed` (idempotent — skips existing)
-5. Add entry to powops `sources.yaml` under `powrobots` garden
-6. Set `health.check: collector_db`, `health.source_id: <SOURCE_ID>`, `health.max_staleness: 72h`
-7. Run `powrobots collect <source>` — powops will see it immediately
-
----
-
-## Known issues
-
-1. **9 of 15 collectors are stubs** — they fetch raw HTML but don't parse structured data. They're "working" from powops' perspective (data flows, collector_run logs success) but the data quality is low.
-
-2. **5 API-key collectors have fetch() stubs** — parsers are ready but `fetch()` returns `None`. Need implementation to make actual API calls.
-
-3. **No pagination** — ukri_gtr gets 10 results, contracts_finder searches 3 terms, hmrc_traders queries 1 commodity code.
-
-4. **source_health table exists but nothing computes into it** — powops reads collector_run directly instead.
-
-5. **No manufacturer seed on VPS** — the seed_loader.py hasn't been run, so robot_manufacturer, robot_model, component tables are empty. This doesn't affect powops monitoring.
+1. **Layer 1 only** — no economics, no modelling
+2. **Raw preservation** — content-addressed, gzip, append-only
+3. **Entity graph** — manufacturers, models, components, relations
+4. **Rights-gated** — source_rights table controls collection
+5. **POWOps integration** — collector_run + source_health tables
+6. **Boring** — simple file reads, no ML, no dashboards-within-dashboards
