@@ -151,6 +151,31 @@ CREATE TABLE IF NOT EXISTS source_rights (
     reviewed_at TEXT
 );
 
+-- Common failures (which parts fail on which robots, how often)
+CREATE TABLE IF NOT EXISTS common_failure (
+    model_id TEXT NOT NULL,
+    component_id TEXT NOT NULL,
+    failure_type TEXT NOT NULL,  -- mechanical, electrical, wear, defect
+    occurrence_count INTEGER DEFAULT 1,
+    first_seen TEXT NOT NULL DEFAULT (datetime('now')),
+    last_seen TEXT NOT NULL DEFAULT (datetime('now')),
+    evidence TEXT,
+    PRIMARY KEY (model_id, component_id, failure_type)
+);
+
+-- Lead tracking (demand patterns, repeat failures, supplier performance)
+CREATE TABLE IF NOT EXISTS lead (
+    lead_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    model_id TEXT,
+    component_id TEXT,
+    supplier_id TEXT,
+    lead_type TEXT NOT NULL,  -- demand_pattern, repeat_failure, supplier_performance, price_trend
+    metric TEXT,
+    value REAL,
+    observed_at TEXT NOT NULL DEFAULT (datetime('now')),
+    notes TEXT
+);
+
 -- === ENTITY GRAPH ===
 
 -- Organisations (companies, institutions, integrators)

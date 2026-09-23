@@ -226,6 +226,31 @@ def cmd_organisations(args):
     conn.close()
 
 
+def cmd_failures(args):
+    from powrobots.shared.db import get_db
+    conn = get_db()
+    query = '''
+        SELECT model_id, component_id, failure_type, occurrence_count, last_seen
+        FROM common_failure
+    '''
+    params = []
+    if args.model:
+        query += ' WHERE model_id = ?'
+        params.append(args.model)
+    query += ' ORDER BY occurrence_count DESC'
+    rows = conn.execute(query, params).fetchall()
+    if not rows:
+        print('  No failure data recorded yet.')
+        conn.close()
+        return
+    print(f'  {"MODEL":24s} {"COMPONENT":24s} {"TYPE":16s} {"COUNT":8s} {"LAST SEEN"}')
+    print(f'  {"-"*24} {"-"*24} {"-"*16} {"-"*8} {"-"*19}')
+    for model, comp, ftype, count, last in rows:
+        print(f'  {(model or ""):24s} {(comp or ""):24s} {(ftype or ""):16s} {count or 0:>8} {(last or "")[:19]}')
+    print(f'\n  {len(rows)} failure records')
+    conn.close()
+
+
 def cmd_robots(args):
     from powrobots.shared.db import get_db
     conn = get_db()
@@ -272,6 +297,15 @@ def main():
     collect_p = sub.add_parser('collect', help='Run a collector')
     collect_p.add_argument('source', help='Source ID or "all"')
 
+    resolve_p = sub.add_parser('resolve', help='Resolve BOM for a robot model')
+    resolve_p.add_argument('model_id', help='Robot model ID')
+
+    subs_p = sub.add_parser('substitutes', help='Find substitutes for a component')
+    subs_p.add_argument('component_id', help='Component ID')
+
+    failures_p = sub.add_parser('failures', help='Show common failures by robot')
+    failures_p.add_argument('--model', help='Filter to one model')
+
     args = parser.parse_args()
     if args.command == 'status':
         cmd_status(args)
@@ -293,6 +327,12 @@ def main():
         cmd_components(args)
     elif args.command == 'organisations':
         cmd_organisations(args)
+    elif args.command == 'resolve':
+        cmd_resolve(args)
+    elif args.command == 'substitutes':
+        cmd_substitutes(args)
+    elif args.command == 'failures':
+        cmd_failures(args)
     else:
         parser.print_help()
 

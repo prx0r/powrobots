@@ -2,7 +2,24 @@
 
 ## What this repo does
 
-POWRobots collects, normalises, and preserves physical-economy data for the UK robotics market. It is a Layer 1 data garden — it captures reality, it doesn't model it.
+POWRobots is the parts intelligence layer for UK robotics. It collects data, builds a compatibility graph, and exposes it via MCP so AI agents can answer: "what part do I need, where do I get it, and what does it cost?"
+
+## The product (MCP-first)
+
+The product is NOT a graph, NOT a storefront, NOT a robot builder.
+The product is the **MCP that connects AI agents to parts intelligence.**
+
+```
+ChatGPT/Muse:  "That's a Roborock S7, LiDAR motor probably failed"
+    ↓
+POW MCP:       resolve_bom("roborock-s7") → LDS01RR, £22 Amazon UK, £25 eBay
+    ↓
+ChatGPT/Muse:  "Repair quote: £22 part + £50 labour = £72"
+    ↓
+POW records:   failure tracked, supplier performance logged, demand pattern noted
+```
+
+We don't build the brain (ChatGPT/Muse does that). We build the API that gives the brain access to the parts graph.
 
 ## How to run
 
