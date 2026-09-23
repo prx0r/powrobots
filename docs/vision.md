@@ -153,3 +153,59 @@ The last four are what we build. The AI does the first three. We do the last fou
 ## The one sentence
 
 **POW is the parts intelligence MCP that tells AI agents which part fits which robot, where to get it, what it costs, and which technician can install it — learning from every repair to make the next one better.**
+
+---
+
+## Competitive landscape (what exists)
+
+| Competitor | Focus | Has MCP | Has UK focus | Has repair intelligence |
+|-----------|-------|---------|-------------|----------------------|
+| RoboParts AI | Humanoid components | Yes | No | No |
+| RoboPartPicker | Open-source projects | Yes | No | No |
+| RoboParts.cc | Humanoid compatibility | Yes | No | No |
+| Partsgraph.ai | Electronics datasheets | Yes | No | No |
+| Source Parts | Component graph | Yes | No | No |
+| pcbparts-mcp | PCB components | Yes | No | No |
+| NeoGiga | 2M+ MPNs | Yes | No | No |
+| **POW** | **Consumer robot repair** | **Building** | **Yes** | **Yes** |
+
+**Nobody focuses on consumer robot repair parts with UK routing and technician dispatch.**
+
+## How POW plugs into the AI agent ecosystem
+
+```
+ChatGPT/Muse:  takes photo of broken Roomba
+    ↓
+POW MCP:       identifies model → finds failed part → prices from 3 suppliers
+    ↓
+ChatGPT/Muse:  "Here's your repair quote"
+    ↓
+POW MCP:       routes to nearest technician → tracks outcome
+    ↓
+POW graph:     failure recorded → next customer gets better recommendation
+```
+
+### Three entry points for AI agents
+
+1. **"I want to build a robot"** → resolve_bom() → BOM with pricing and alternatives
+2. **"This part is broken"** → find_substitutes() → verified alternatives with UK prices
+3. **"What fails most on this robot?"** → failures command → demand patterns and common faults
+
+### The normalisation layer
+
+POW normalises the fragmented robotics parts ecosystem:
+
+```
+Before POW:
+  Seeed:     their parts, their prices, their ecosystem
+  LeRobot:   open-source BOMs, no pricing, no suppliers
+  FixPart:   15M parts, no robotics-specific intelligence
+  eBay:      random listings, no compatibility data
+  Alibaba:   cheapest but no UK delivery, no verification
+
+After POW:
+  MCP:       unified query across all suppliers
+  Graph:     cross-brand compatibility verified
+  Routing:   cheapest/fastest/UK-held options
+  Outcomes:  which parts actually work in the field
+```
