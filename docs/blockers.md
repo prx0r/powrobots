@@ -97,14 +97,55 @@ EBAY_APP_ID=
 **Status:** Structural limitation — need to find API endpoints or use browser automation
 **Workaround:** BARA has no usable data. RBTX product data requires API. Apprenticeships requires the search API at `findapprenticeship.service.gov.uk`.
 
-## 11. Companies House API key obtained
+## 11. ~~Companies House API key obtained~~ RESOLVED
 
-**Blocked:** Nothing — ready to implement fetch()
-**Why:** User provided API key
-**Status:** Key available via env var `COMPANIES_HOUSE_API_KEY`
-**Next:** Implement CompaniesHouseCollector.fetch()
+**Status:** DONE — Companies House fetch() implemented, 250 companies parsed
+
+---
+
+## 12. Manufacturer documentation access varies
 
 **Blocked:** Some manufacturer docs require customer/dealer login (FANUC MyPortal, Universal Robots parts catalogue)
 **Why:** Not all repair documentation is public
 **Unblock:** Partner with repair businesses who have access, or use publicly available subsets
 **Status:** Structural limitation — work with what's public first
+
+---
+
+## 13. contracts_finder fetch intermittent failures
+
+**Blocked:** Sometimes fetches fail (site blocks or is down)
+**Why:** UK government sites may rate-limit or have uptime issues
+**Impact:** procurement_notice table stays empty
+**Workaround:** Re-run collector, or parse from existing raw blobs
+**Status:** Intermittent — not a code bug
+
+---
+
+## 14. grant_project only populated on new results
+
+**Blocked:** ukri_gtr returns 0 new results when already collected
+**Why:** grant_project write only runs when parse() finds new projects
+**Impact:** grant_project table empty despite data existing in source_record
+**Workaround:** Backfill from existing source_records
+**Status:** Design limitation — not a bug
+
+---
+
+## 15. No MCP server in powrobots
+
+**Blocked:** powrobots has no own MCP server
+**Why:** Relies on powops MCP for exposure
+**Impact:** Agent can only query powrobots via powops, not directly
+**Workaround:** Use powops MCP tools
+**Status:** By design — powops is the operational surface
+
+---
+
+## 16. powops can't query entity graph
+
+**Blocked:** powops only reads collector_run and source_health
+**Why:** Entity graph tables (organisation, robot_model, component) not exposed via powops
+**Impact:** powops can't show entity counts or model/component data
+**Workaround:** Use powrobots CLI (`powrobots robots`, `powrobots models`)
+**Status:** Could add powrobots-specific MCP tools or summary view

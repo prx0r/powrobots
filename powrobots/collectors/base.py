@@ -1,6 +1,8 @@
 """Base collector for POWRobots."""
 
 import json
+import os
+import subprocess
 import time
 import requests
 from datetime import datetime, timezone
@@ -8,6 +10,21 @@ from powrobots.shared.persist import (
     get_db, store_raw, store_acquisition, insert_source_record,
     log_run, check_source_rights
 )
+
+
+def _get_collector_sha() -> str:
+    """Get git SHA of the collector code, or empty string."""
+    try:
+        result = subprocess.run(
+            ['git', 'rev-parse', '--short', 'HEAD'],
+            capture_output=True, text=True, timeout=5,
+            cwd=os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
+        )
+        if result.returncode == 0:
+            return result.stdout.strip()
+    except Exception:
+        pass
+    return ''
 
 
 class CollectorResult:
@@ -81,6 +98,7 @@ class BaseCollector:
 
     def run(self):
         result = CollectorResult()
+        collector_sha = _get_collector_sha()
         print(f'{self.SOURCE_ID} — {self.DATASET}')
         print('=' * 50)
         rights = check_source_rights(self.SOURCE_ID)
@@ -88,7 +106,8 @@ class BaseCollector:
             result.errors.append('rights_blocked')
             result.finished_at = datetime.now(timezone.utc).isoformat()
             log_run(self.SOURCE_ID, 'blocked', error='rights_blocked',
-                    started_at=result.started_at, finished_at=result.finished_at)
+                    started_at=result.started_at, finished_at=result.finished_at,
+                    collector_sha=collector_sha)
             return result
         try:
             print('  Fetching...')
@@ -116,5 +135,6 @@ class BaseCollector:
                     result.records_new, result.records_unchanged, result.records_changed,
                     result.records_invalid,
                     error=json.dumps(result.errors) if result.errors else None,
-                    started_at=result.started_at, finished_at=result.finished_at)
+                    started_at=result.started_at, finished_at=result.finished_at,
+                    collector_sha=collector_sha)
         return result

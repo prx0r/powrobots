@@ -17,6 +17,23 @@ class UkriGtrCollector(BaseCollector):
     DATASET = 'research_projects'
     PARSER_ID = 'gtr_xml_v1'
 
+    def _write_grant_project(self, project_id, title, status, funder):
+        """Write to grant_project table."""
+        from powrobots.shared.db import get_db
+        conn = get_db()
+        try:
+            conn.execute(
+                'INSERT OR IGNORE INTO grant_project '
+                '(project_id, programme, title, source_id, observed_at) '
+                'VALUES (?, ?, ?, ?, datetime(\'now\'))',
+                (project_id, funder, title, 'ukri_gtr')
+            )
+            conn.commit()
+        except Exception:
+            pass
+        finally:
+            conn.close()
+
     def fetch(self):
         """Fetch UKRI Gateway to Research projects related to robotics."""
         acq = self._fetch_url(
@@ -81,6 +98,9 @@ class UkriGtrCollector(BaseCollector):
                     if 'organisations/' in href and rel == 'LEAD_ORG':
                         org_id = href.split('/organisations/')[-1]
                         upsert_organisation(org_id, f'UKRI Org {org_id[:8]}')
+
+                # Write to grant_project table
+                self._write_grant_project(project_id, title, status, funder)
 
         except ET.ParseError:
             result.records_invalid += 1

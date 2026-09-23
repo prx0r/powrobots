@@ -24,6 +24,31 @@ class ContractsFinderCollector(BaseCollector):
     DATASET = 'procurement_notices'
     PARSER_ID = 'cf_html_v1'
 
+    def _write_procurement_notice(self, normalized, source_record_id=''):
+        """Write to procurement_notice table."""
+        from powrobots.shared.db import get_db
+        conn = get_db()
+        try:
+            conn.execute(
+                'INSERT OR IGNORE INTO procurement_notice '
+                '(notice_id, source_id, stage, published_at, buyer_name, title, '
+                'value_min, currency, region, raw_observation_id) '
+                'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+                (normalized.get('notice_id', ''), 'contracts_finder',
+                 normalized.get('procurement_stage', ''),
+                 normalized.get('publication_date', ''),
+                 normalized.get('buyer', ''),
+                 normalized.get('title', ''),
+                 None, 'GBP',
+                 normalized.get('contract_location', ''),
+                 source_record_id)
+            )
+            conn.commit()
+        except Exception:
+            pass
+        finally:
+            conn.close()
+
     def fetch(self):
         """Search Contracts Finder for robotics-related notices."""
         term = 'robot'
@@ -109,6 +134,9 @@ class ContractsFinderCollector(BaseCollector):
                     country_code='GB',
                     org_type='buyer',
                 )
+
+            # Write to procurement_notice table
+            self._write_procurement_notice(normalized, notice_id or title)
 
             notices_found += 1
 

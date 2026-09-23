@@ -18,6 +18,29 @@ class OpsSafetyCollector(BaseCollector):
     DATASET = 'safety_alerts'
     PARSER_ID = 'opss_html_v1'
 
+    def _write_safety_notice(self, normalized):
+        """Write to safety_notice table."""
+        from powrobots.shared.db import get_db
+        conn = get_db()
+        try:
+            conn.execute(
+                'INSERT OR IGNORE INTO safety_notice '
+                '(notice_id, source_id, product, category, risk_level, '
+                'failure_description, recall_date, observed_at) '
+                'VALUES (?, ?, ?, ?, ?, ?, ?, datetime(\'now\'))',
+                (normalized.get('alert_id', ''), 'opss_safety',
+                 normalized.get('title', ''),
+                 normalized.get('product_category', ''),
+                 normalized.get('risk_level', ''),
+                 normalized.get('alert_type', ''),
+                 normalized.get('date_published', ''))
+            )
+            conn.commit()
+        except Exception:
+            pass
+        finally:
+            conn.close()
+
     def fetch(self):
         """Fetch OPSS product safety alerts (machinery category)."""
         url = 'https://www.gov.uk/product-safety-alerts-reports-recalls?categories%5B0%5D=machinery'
@@ -78,6 +101,9 @@ class OpsSafetyCollector(BaseCollector):
                 result.records_new += 1
             else:
                 result.records_unchanged += 1
+
+            # Write to safety_notice table
+            self._write_safety_notice(normalized)
 
             alerts_found += 1
 

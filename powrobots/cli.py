@@ -149,6 +149,112 @@ def cmd_health(args):
     conn.close()
 
 
+def cmd_models(args):
+    from powrobots.shared.db import get_db
+    conn = get_db()
+    rows = conn.execute(
+        'SELECT model_id, canonical_name, manufacturer_id, robot_type, axes, payload_kg, reach_mm '
+        'FROM robot_model ORDER BY manufacturer_id, canonical_name'
+    ).fetchall()
+    if not rows:
+        print('  No models found. Run: powrobots seed')
+        conn.close()
+        return
+    print(f'  {"MODEL ID":30s} {"NAME":30s} {"MANUFACTURER":16s} {"TYPE":12s} {"AXES":5s} {"PAYLOAD":8s} {"REACH":8s}')
+    print(f'  {"-"*30} {"-"*30} {"-"*16} {"-"*12} {"-"*5} {"-"*8} {"-"*8}')
+    for r in rows:
+        mid = (r[0] or '')[:28]
+        name = (r[1] or '')[:28]
+        mfg = (r[2] or '')[:14]
+        rtype = (r[3] or '')[:10]
+        axes = str(r[4] or '')[:3]
+        payload = f'{r[5]:.1f}kg' if r[5] else '—'
+        reach = f'{r[6]:.0f}mm' if r[6] else '—'
+        print(f'  {mid:30s} {name:30s} {mfg:16s} {rtype:12s} {axes:5s} {payload:8s} {reach:8s}')
+    print(f'\n  {len(rows)} models')
+    conn.close()
+
+
+def cmd_components(args):
+    from powrobots.shared.db import get_db
+    conn = get_db()
+    rows = conn.execute(
+        'SELECT component_id, canonical_name, mpn, category, manufacturer_id '
+        'FROM component ORDER BY category, canonical_name'
+    ).fetchall()
+    if not rows:
+        print('  No components found. Run: powrobots seed')
+        conn.close()
+        return
+    print(f'  {"COMPONENT ID":24s} {"NAME":28s} {"MPN":20s} {"CATEGORY":16s} {"MANUFACTURER":16s}')
+    print(f'  {"-"*24} {"-"*28} {"-"*20} {"-"*16} {"-"*16}')
+    for r in rows:
+        cid = (r[0] or '')[:22]
+        name = (r[1] or '')[:26]
+        mpn = (r[2] or '')[:18]
+        cat = (r[3] or '')[:14]
+        mfg = (r[4] or '')[:14]
+        print(f'  {cid:24s} {name:28s} {mpn:20s} {cat:16s} {mfg:16s}')
+    print(f'\n  {len(rows)} components')
+    conn.close()
+
+
+def cmd_organisations(args):
+    from powrobots.shared.db import get_db
+    conn = get_db()
+    rows = conn.execute(
+        'SELECT org_id, canonical_name, country_code, org_type '
+        'FROM organisation ORDER BY org_type, canonical_name LIMIT 50'
+    ).fetchall()
+    count = conn.execute('SELECT COUNT(*) FROM organisation').fetchone()[0]
+    if not rows:
+        print('  No organisations found.')
+        conn.close()
+        return
+    print(f'  {"ORG ID":30s} {"NAME":36s} {"COUNTRY":8s} {"TYPE":16s}')
+    print(f'  {"-"*30} {"-"*36} {"-"*8} {"-"*16}')
+    for r in rows:
+        oid = (r[0] or '')[:28]
+        name = (r[1] or '')[:34]
+        cc = (r[2] or '')[:6]
+        otype = (r[3] or '')[:14]
+        print(f'  {oid:30s} {name:36s} {cc:8s} {otype:16s}')
+    if count > 50:
+        print(f'\n  Showing 50 of {count} organisations')
+    else:
+        print(f'\n  {count} organisations')
+    conn.close()
+
+
+def cmd_robots(args):
+    from powrobots.shared.db import get_db
+    conn = get_db()
+    mfg_count = conn.execute('SELECT COUNT(*) FROM robot_manufacturer').fetchone()[0]
+    model_count = conn.execute('SELECT COUNT(*) FROM robot_model').fetchone()[0]
+    rel_count = conn.execute('SELECT COUNT(*) FROM product_relation').fetchone()[0]
+    comp_count = conn.execute('SELECT COUNT(*) FROM component').fetchone()[0]
+    org_count = conn.execute('SELECT COUNT(*) FROM organisation').fetchone()[0]
+    print(f'  === Entity Graph Summary ===')
+    print(f'  Organisations:    {org_count:>6}')
+    print(f'  Manufacturers:    {mfg_count:>6}')
+    print(f'  Robot models:     {model_count:>6}')
+    print(f'  Components:       {comp_count:>6}')
+    print(f'  Relations:        {rel_count:>6}')
+    print()
+    # Show top manufacturers by model count
+    rows = conn.execute('''
+        SELECT m.canonical_name, COUNT(rm.model_id) as models
+        FROM robot_manufacturer m
+        LEFT JOIN robot_model rm ON rm.manufacturer_id = m.manufacturer_id
+        GROUP BY m.manufacturer_id
+        ORDER BY models DESC LIMIT 10
+    ''').fetchall()
+    print(f'  Top manufacturers by model count:')
+    for name, count in rows:
+        print(f'    {name:30s} {count:>3} models')
+    conn.close()
+
+
 def main():
     parser = argparse.ArgumentParser(description='POWRobots CLI')
     sub = parser.add_subparsers(dest='command')
@@ -158,6 +264,10 @@ def main():
     sub.add_parser('seed', help='Seed source_rights + source_registry')
     sub.add_parser('validate', help='Run validation checks')
     sub.add_parser('health', help='Show last collector run per source')
+    sub.add_parser('robots', help='Entity graph summary')
+    sub.add_parser('models', help='List robot models')
+    sub.add_parser('components', help='List components')
+    sub.add_parser('organisations', help='List organisations (first 50)')
 
     collect_p = sub.add_parser('collect', help='Run a collector')
     collect_p.add_argument('source', help='Source ID or "all"')
@@ -175,6 +285,14 @@ def main():
         cmd_validate(args)
     elif args.command == 'health':
         cmd_health(args)
+    elif args.command == 'robots':
+        cmd_robots(args)
+    elif args.command == 'models':
+        cmd_models(args)
+    elif args.command == 'components':
+        cmd_components(args)
+    elif args.command == 'organisations':
+        cmd_organisations(args)
     else:
         parser.print_help()
 
