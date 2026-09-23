@@ -1,0 +1,213 @@
+{
+  "content_id": "AOC:135c29943760cb1213be577d296f43959132ce5e320499033006e4b3f51c13f2",
+  "experiment_id": "EXP:271c5891d82f613e41a52f4cc8cffd1bd888a483e6552890c8d39f9b2318d20f",
+  "hook": "Puck does AI workflows. What would yours do first?",
+  "template": "opportunity",
+  "kind": "organic",
+  "final_cta": "DM GLIMLING for launch updates.",
+  "slides": [
+    "slide_00.jpg",
+    "slide_01.jpg",
+    "slide_02.jpg",
+    "slide_03.jpg",
+    "slide_04.jpg",
+    "slide_05.jpg"
+  ],
+  "sha256": {
+    "slide_00.jpg": "90ae5d90df5a71e25a72fba9d3e44c6407931a2f4503956ca787007690866981",
+    "slide_01.jpg": "60136d2be9846de35b23fcc38d7f19eafc6c9c04032609ed7f0ad0d338cab7ef",
+    "slide_02.jpg": "61e90c5b83bfcd64defcf0904c41609ef79cae889deb52c6d0be6c375fb96eae",
+    "slide_03.jpg": "2b712750689114445a56da6475240881859c287e8be47be4db51f49179269390",
+    "slide_04.jpg": "529bbf0c0ec1664bff563cde2ed9bf201dd53662cce9bd97422091c3a477bdbc",
+    "slide_05.jpg": "679064f21ad1269450a43e050c29506d6974c1f278502cf7111934827a432168"
+  },
+  "validation": {
+    "passed": true,
+    "slides": {
+      "slide_00.jpg": {
+        "ok": true,
+        "checks": {
+          "dims": {
+            "ok": true,
+            "detail": "(1080, 1920)"
+          },
+          "mode": {
+            "ok": true,
+            "detail": "RGB"
+          },
+          "backdrop": {
+            "ok": true,
+            "detail": "band luminance 22"
+          },
+          "text_present": {
+            "ok": true,
+            "detail": "luminance spread 255"
+          },
+          "margins": {
+            "ok": true,
+            "detail": "edge spread 0 vs band 255"
+          }
+        }
+      },
+      "slide_01.jpg": {
+        "ok": true,
+        "checks": {
+          "dims": {
+            "ok": true,
+            "detail": "(1080, 1920)"
+          },
+          "mode": {
+            "ok": true,
+            "detail": "RGB"
+          },
+          "backdrop": {
+            "ok": true,
+            "detail": "band luminance 35"
+          },
+          "text_present": {
+            "ok": true,
+            "detail": "luminance spread 255"
+          },
+          "margins": {
+            "ok": true,
+            "detail": "edge spread 0 vs band 255"
+          }
+        }
+      },
+      "slide_02.jpg": {
+        "ok": true,
+        "checks": {
+          "dims": {
+            "ok": true,
+            "detail": "(1080, 1920)"
+          },
+          "mode": {
+            "ok": true,
+            "detail": "RGB"
+          },
+          "backdrop": {
+            "ok": true,
+            "detail": "band luminance 39"
+          },
+          "text_present": {
+            "ok": true,
+            "detail": "luminance spread 255"
+          },
+          "margins": {
+            "ok": true,
+            "detail": "edge spread 0 vs band 255"
+          }
+        }
+      },
+      "slide_03.jpg": {
+        "ok": true,
+        "checks": {
+          "dims": {
+            "ok": true,
+            "detail": "(1080, 1920)"
+          },
+          "mode": {
+            "ok": true,
+            "detail": "RGB"
+          },
+          "backdrop": {
+            "ok": true,
+            "detail": "band luminance 42"
+          },
+          "text_present": {
+            "ok": true,
+            "detail": "luminance spread 255"
+          },
+          "margins": {
+            "ok": true,
+            "detail": "edge spread 0 vs band 255"
+          }
+        }
+      },
+      "slide_04.jpg": {
+        "ok": true,
+        "checks": {
+          "dims": {
+            "ok": true,
+            "detail": "(1080, 1920)"
+          },
+          "mode": {
+            "ok": true,
+            "detail": "RGB"
+          },
+          "backdrop": {
+            "ok": true,
+            "detail": "band luminance 40"
+          },
+          "text_present": {
+            "ok": true,
+            "detail": "luminance spread 255"
+          },
+          "margins": {
+            "ok": true,
+            "detail": "edge spread 0 vs band 255"
+          }
+        }
+      },
+      "slide_05.jpg": {
+        "ok": true,
+        "checks": {
+          "dims": {
+            "ok": true,
+            "detail": "(1080, 1920)"
+          },
+          "mode": {
+            "ok": true,
+            "detail": "RGB"
+          },
+          "backdrop": {
+            "ok": true,
+            "detail": "band luminance 33"
+          },
+          "text_present": {
+            "ok": true,
+            "detail": "luminance spread 255"
+          },
+          "margins": {
+            "ok": true,
+            "detail": "edge spread 0 vs band 255"
+          }
+        }
+      }
+    }
+  },
+  "contact_sheet": "contact_sheet.jpg",
+  "review": {
+    "auto_passed": true,
+    "pending_human": [
+      {
+        "id": "hook-matches-body",
+        "rule": "Hook promise matches what follows"
+      },
+      {
+        "id": "sequence-arc",
+        "rule": "One structure only; order is load-bearing"
+      },
+      {
+        "id": "readable-phone-size",
+        "rule": "Readable in <2s at phone size"
+      },
+      {
+        "id": "visual-continuity",
+        "rule": "Same font/palette/grid across slides"
+      },
+      {
+        "id": "caption-supports",
+        "rule": "Caption reinforces, not repeats, the hook"
+      },
+      {
+        "id": "disclosure",
+        "rule": "Fictional demos marked; no fake proof"
+      },
+      {
+        "id": "reviewer-recorded",
+        "rule": "Human verdict with reason on file"
+      }
+    ]
+  }
+}
