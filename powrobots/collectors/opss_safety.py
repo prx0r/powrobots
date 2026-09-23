@@ -1,23 +1,25 @@
 """OPSS Product Safety Collector — UK safety alerts/recalls.
 
-Scrapes the UK Office for Product Safety and Standards alerts.
+Parses individual safety alerts from GOV.UK product safety pages.
 Source: https://www.gov.uk/product-safety-alerts-reports-recalls
 """
 
-import json
-import re
-from datetime import datetime, timezone
 from powrobots.collectors.base import BaseCollector, CollectorResult
-from powrobots.shared.persist import insert_source_record, get_db
+from powrobots.shared.persist import insert_source_record
+
+try:
+    from bs4 import BeautifulSoup
+except ImportError:
+    BeautifulSoup = None
 
 
 class OpsSafetyCollector(BaseCollector):
     SOURCE_ID = 'opss_safety'
     DATASET = 'safety_alerts'
-    PARSER_ID = 'opss_web_v1'
+    PARSER_ID = 'opss_html_v1'
 
     def fetch(self):
-        """Fetch OPSS product safety alerts."""
+        """Fetch OPSS product safety alerts (machinery category)."""
         url = 'https://www.gov.uk/product-safety-alerts-reports-recalls?categories%5B0%5D=machinery'
         acq = self._fetch_url(url, timeout=15)
         if acq and acq.get('status') == 200:
@@ -25,27 +27,61 @@ class OpsSafetyCollector(BaseCollector):
         return None
 
     def parse(self, raw_content, raw_hash, result):
-        """Parse OPSS alerts page."""
+        """Parse OPSS alerts HTML into individual alert records."""
         if not raw_content:
             return
+        if BeautifulSoup is None:
+            print('  WARNING: beautifulsoup4 not installed, skipping parse')
+            return
+
         html = raw_content.decode('utf-8', errors='replace')
-        # Extract alert entries from the page
-        # Store as evidence for later structured extraction
-        normalized = {
-            'source_native_id': 'opss_machinery_alerts',
-            'content_type': 'html',
-            'content_length': len(raw_content),
-            'category': 'machinery',
-            'note': 'OPSS machinery safety alerts page stored as evidence',
-        }
-        ir = insert_source_record(
-            self.SOURCE_ID, self.DATASET, 'opss_machinery_page',
-            normalized, raw_hash, self.PARSER_ID, self.PARSER_VERSION
-        )
-        if ir['inserted']:
-            result.records_new += 1
-        else:
-            result.records_unchanged += 1
+        soup = BeautifulSoup(html, 'html.parser')
+
+        items = soup.find_all('li', class_='gem-c-document-list__item')
+        alerts_found = 0
+
+        for item in items:
+            # Title and URL
+            title_div = item.find('div', class_='gem-c-document-list__item-title')
+            if not title_div:
+                continue
+            link = title_div.find('a')
+            if not link:
+                continue
+            title = link.get_text(strip=True)
+            href = link.get('href', '')
+            alert_id = href.rstrip('/').split('/')[-1] if href else ''
+
+            # Metadata
+            metadata = {}
+            for li in item.find_all('li', class_='gem-c-document-list__attribute'):
+                text = li.get_text(strip=True)
+                if ':' in text:
+                    label, value = text.split(':', 1)
+                    metadata[label.strip()] = value.strip()
+
+            normalized = {
+                'alert_id': alert_id,
+                'title': title,
+                'alert_type': metadata.get('Alert type', ''),
+                'risk_level': metadata.get('Risk level', ''),
+                'product_category': metadata.get('Product category', ''),
+                'date_published': metadata.get('Date published', ''),
+                'url': f'https://www.gov.uk{href}' if href and not href.startswith('http') else href,
+            }
+
+            ir = insert_source_record(
+                self.SOURCE_ID, self.DATASET, alert_id or title,
+                normalized, raw_hash, self.PARSER_ID, self.PARSER_VERSION
+            )
+            if ir['inserted']:
+                result.records_new += 1
+            else:
+                result.records_unchanged += 1
+
+            alerts_found += 1
+
+        print(f'  Parsed {alerts_found} safety alerts from HTML')
 
 
 if __name__ == '__main__':
