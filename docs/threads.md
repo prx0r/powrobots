@@ -2,218 +2,228 @@
 
 All unresolved work, blockers, and decisions that need attention.
 
+Updated 2026-09-23 with global devplan gap analysis.
+
 ---
 
-## Thread 1: Mouser fetch() implementation
+## Gap analysis: devplan.md vs reality
+
+### Checkpoint 1: Collecting
+
+| Requirement | Status | Gap |
+|-------------|--------|-----|
+| All 7 gardens discovered | Partial | powrobots is wired, other gardens vary |
+| Every collector produces run receipt | Done | collector_run + source_health populated |
+| Dashboard shows real status | Done | powops shows 10/15 ok, 5/15 no_key |
+| No false-green health signals | Done | evidence_level, staleness checks working |
+
+### Checkpoint 2: Verified data (powrobots portion)
+
+| Requirement | Status | Gap |
+|-------------|--------|-----|
+| 10 robot models with exact BOMs | 123 models, 0 BOMs | Need BOM parsing from vendor repos |
+| BOM for Dreame L10s Ultra | Not started | No consumer robot data at all |
+| BOM for Roborock S7 | Not started | No consumer robot data at all |
+| BOM for SO-101 | Not started | Need to parse ODRI/LeRobot repos |
+| 3 substitution types | Not started | Need compatibility evidence |
+
+### Garden 1: UK robot intelligence (commercial2.md)
+
+| Requirement | Status | Gap |
+|-------------|--------|-----|
+| Discover consumer robots entering UK | Not started | No consumer robot detection |
+| Exact models and revisions | Industrial only | Need Dreame, Roborock, iRobot, Husqvarna |
+| Parts, manuals, accessories | Seed-level only | Need manufacturer doc parsing |
+| Robot-to-parts graph | 29 seed relations | Need BOM parsing for real relations |
+
+### Spare parts first transaction (goldmoat2.md)
+
+| Part | Status | Gap |
+|------|--------|-----|
+| Dreame pump 20020100005232 | Not tracked | Need supplier monitoring |
+| Dreame solenoid 20020100009618 | Not tracked | Need supplier monitoring |
+| Roborock contacts 9.01.0248 | Not tracked | Need supplier monitoring |
+| Roborock S7 LiDAR motor | Not tracked | Need supplier monitoring |
+
+---
+
+## Thread 1: Consumer robot registration
+
+**Status:** Not started
+**What:** Register Dreame L10s Ultra, Roborock S7, iRobot Roomba, Husqvarna Automower with exact models, revisions, gear ratios, motor configs
+**Why:** devplan.md Phase 1 requires 10 robot models with exact BOMs. Current 123 models are all industrial (ABB, FANUC, KUKA, UR). Zero consumer robots.
+**Effort:** 5-7 days
+**Priority:** P0 — blocks Phase 1 commercial milestone
+**Depends on:** Manufacturer documentation access, teardown data
+
+---
+
+## Thread 2: BOM parsing from vendor repos
+
+**Status:** 7 repos cloned, not parsed
+**What:** Parse URDF/XACRO files from ABB, FANUC, KUKA, Universal Robot, MuJoCo Menagerie to extract robot specs and component relationships
+**Why:** Need "10 robot models with exact BOMs" for Checkpoint 2
+**Effort:** 5-7 days
+**Priority:** P0 — highest value unbuilt collector
+**Depends on:** lxml (installed), URDF format knowledge
+
+---
+
+## Thread 3: SO-101 complete BOM
+
+**Status:** Not started
+**What:** Get SO-101 BOM from LeRobot/ODRI repos, document exact gear ratios per joint, map to supplier parts
+**Why:** devplan.md says SO-101 is the first reference design for kits
+**Effort:** 3-5 days
+**Priority:** P0 — first kit product foundation
+**Depends on:** ODRI/LeRobot repo access, servo specification data
+
+---
+
+## Thread 4: Robot vacuum spare parts monitoring
+
+**Status:** Not started
+**What:** Track Dreame, Roborock, iRobot parts with exact part numbers, pricing, UK availability
+**Why:** goldmoat2.md identifies 6 specific parts with observable UK supply gaps
+**Effort:** 5-7 days
+**Priority:** P0 — first commercial transaction
+**Depends on:** Supplier API access (eBay, FixPart, manufacturer stores)
+
+---
+
+## Thread 5: Mouser fetch() implementation
 
 **Status:** Parser ready, fetch stub
-**Blocker:** Need API key set as `MOUSER_API_KEY` env var
-**Parser:** Extracts MPN, brand, price, stock, status from JSON response
+**Blocker:** Need MOUSER_API_KEY env var
 **API:** Mouser Search API (free, 1000 req/day)
 **Effort:** 2-3 days
-**Priority:** P0 — component pricing
-
-When key is available:
-1. Implement `fetch()` with API key auth
-2. Search by MPN from `component_basket.yml` seed
-3. Test end-to-end
+**Priority:** P0 — component pricing for BOM resolution
 
 ---
 
-## Thread 2: Farnell fetch() implementation
+## Thread 6: Farnell fetch() implementation
 
 **Status:** Parser ready, fetch stub
-**Blocker:** Need API key set as `FARNELL_API_KEY` env var
-**Parser:** Extracts MPN, brand, price (GBP), stock, lead time from JSON
+**Blocker:** Need FARNELL_API_KEY env var
 **API:** element14 Product Search API (free key)
 **Effort:** 2-3 days
 **Priority:** P0 — UK component pricing
 
-Same pattern as Mouser. When key available, implement `fetch()`.
-
 ---
 
-## Thread 3: LCSC fetch() implementation
+## Thread 7: LCSC fetch() implementation
 
 **Status:** Parser ready, fetch stub
-**Blocker:** Need API key set as `LCSC_API_KEY` env var
-**Parser:** Extracts MPN, brand, price (CNY), stock, grade from JSON
+**Blocker:** Need LCSC_API_KEY env var
 **API:** LCSC Open API
 **Effort:** 2-3 days
 **Priority:** P0 — China component pricing
 
-Same pattern as Mouser/Farnell. When key available, implement `fetch()`.
-
 ---
 
-## Thread 4: eBay UK fetch() implementation
+## Thread 8: eBay UK fetch() implementation
 
 **Status:** Parser ready, fetch stub + location bug
-**Blocker:** Need `EBAY_APP_ID` + OAuth 2.0 setup (more complex than simple API key)
-**Parser:** Extracts item ID, title, price, condition, seller
-**Bug:** `location` field mapped to `itemEndDate` instead of actual location
+**Blocker:** Need EBAY_APP_ID + OAuth 2.0 setup
+**Bug:** `location` mapped to `itemEndDate`
 **Effort:** 3-4 days
-**Priority:** P1 — used market data
-
-eBay uses OAuth client credentials flow, not simple API key. Needs:
-1. Register eBay developer account
-2. Create app, get client_id + client_secret
-3. Implement OAuth token fetch
-4. Fix location bug in parser
+**Priority:** P1 — used market + spare parts pricing
 
 ---
 
-## Thread 5: BARA directory — JS-rendered
+## Thread 9: Mouser/Farnell component pricing for SO-101
+
+**Status:** Depends on Threads 5-7
+**What:** Price the SO-101 BOM components across UK (Farnell), global (Mouser), China (LCSC)
+**Why:** First kit product needs UK-delivered quote
+**Effort:** 2-3 days after API keys
+**Priority:** P0 — first kit pricing
+
+---
+
+## Thread 10: Cross-repo integration
+
+**Status:** Not started
+**What:** Share component identity with powproducts, link repair data to robot models, route BOMs to suppliers via powphysical
+**Why:** devplan.md Phase 2 requires cross-garden data flow
+**Effort:** 1-2 weeks
+**Priority:** P1 — Phase 2 foundation
+
+---
+
+## Thread 11: powrobots → powuk data dependency
+
+**Status:** Not started
+**What:** powrobots needs UK business data from powuk for context
+**Why:** DEVMAP Priority 5.1
+**Effort:** 2 days
+**Priority:** P2 — enriches UK business intelligence
+
+---
+
+## Thread 12: Consumer robot detection from UK market
+
+**Status:** Not started
+**What:** Monitor new consumer robots entering UK market (Dreame, Roborock, Ecovacs, iRobot, Husqvarna)
+**Why:** commercial2.md Garden 1 requirement
+**Effort:** 3-5 days
+**Priority:** P1 — expanding beyond industrial robots
+
+---
+
+## Thread 13: Repair outcome tracking
+
+**Status:** Not started
+**What:** Record which parts actually fail, which repairs work, which substitutions are verified
+**Why:** repair-outcome-vision.md — the data moat
+**Effort:** Ongoing — needs real technician relationships
+**Priority:** P1 — long-term defensibility
+
+---
+
+## Thread 14: JS-rendered pages (BARA, RBTX, apprenticeships)
 
 **Status:** Structural blocker
-**Current:** Raw HTML is a JavaScript redirect page (`window.location.href="/lander"`)
-**URL:** automate.org.uk/member-directory
-**Options:**
-1. Find API endpoint behind the JS
-2. Use headless browser (playwright/selenium)
-3. Accept as evidence-only
-**Effort:** Unknown — needs investigation
-**Priority:** P2 — integrator directory
+**What:** Find API endpoints or use browser automation
+**Effort:** Unknown
+**Priority:** P2 — can work around for now
 
 ---
 
-## Thread 6: RBTX marketplace — JS-rendered
-
-**Status:** Structural blocker
-**Current:** Product listings rendered by JavaScript, static HTML has no product data
-**URL:** rbtx.co.uk, rbtx.igus.cn
-**Options:**
-1. Find API endpoint behind the JS
-2. Use headless browser
-3. Accept as evidence-only
-**Effort:** Unknown — needs investigation
-**Priority:** P2 — robot pricing
-
----
-
-## Thread 7: Apprenticeships — JS-rendered landing page
-
-**Status:** Structural blocker
-**Current:** Landing page with links to search services, no actual listings in static HTML
-**URL:** gov.uk/apply-apprenticeship
-**Options:**
-1. Use `findapprenticeship.service.gov.uk` search API directly
-2. Use headless browser
-**Effort:** Low if API found
-**Priority:** P2 — labour signals
-
----
-
-## Thread 8: HMRC trade statistics parser
+## Thread 15: HMRC trade statistics parser
 
 **Status:** Raw HTML stored, no structured parsing
-**Current:** Fetches uktradeinfo.com/trade-statistics/ page, stores HTML
-**What's needed:** Parse trade statistics tables (commodity code, value, volume, partner countries)
+**What:** Parse trade statistics (values, volumes, trends) — not just trader list
 **Effort:** 2-3 days
 **Priority:** P1 — trade flow data
 
-The traders CSV is parsed (561 businesses), but the trade statistics (values, volumes, trends) are not.
-
 ---
 
-## Thread 9: ONS PPI parser
+## Thread 16: ONS PPI parser
 
-**Status:** Raw HTML stored, no structured parsing
-**Current:** Fetches ONS inflation/price indices page, stores HTML
-**What's needed:** Parse price index time series (index name, date, value, category)
+**Status:** Navigation page, no inline data
+**What:** Follow links to producer price inflation datasets, parse time series
 **Effort:** 2-3 days
 **Priority:** P1 — UK price signals
 
 ---
 
-## Thread 10: BGS minerals parser
+## Thread 17: No MCP server in powrobots
 
-**Status:** Raw HTML stored, no structured parsing
-**Current:** Fetches BGS World Mineral Statistics page, stores HTML
-**What's needed:** Parse mineral statistics tables (mineral, production, UK imports)
+**Status:** By design — powops is the operational surface
+**What:** If needed, add powrobots-specific MCP tools for entity graph queries
 **Effort:** 2-3 days
-**Priority:** P2 — material supply
+**Priority:** P2 — powops MCP covers health, not entity graph
 
 ---
 
-## Thread 11: powops /root/powuk permission error
+## Thread 18: powops can't query entity graph
 
-**Status:** powops bug, not powrobots
-**Error:** `PermissionError: [Errno 13] Permission denied: '/root/powuk'`
-**Cause:** New powops commit added gardens at `/root/powuk` and `/root/powstock`
-**Impact:** powops `check_all()` fails — doesn't affect powrobots
-**Workaround:** Check powrobots specifically instead of full `check_all()`
-**Fix:** Either fix paths in powops sources.yaml or add error handling in garden.py
-**Priority:** Medium
-
----
-
-## Thread 12: eBay parser location bug
-
-**Status:** Bug in ebay_uk.py
-**Line:** `ebay_uk.py` maps `location` to `itemEndDate`
-**Impact:** Location data is wrong when eBay fetch() is implemented
-**Fix:** Map `location` to `item.get('itemWebUrl', '')` or correct field
-**Effort:** 5 minutes
-**Priority:** Low (won't matter until fetch() is implemented)
-
----
-
-## Thread 13: seed_loader.py on VPS
-
-**Status:** Completed
-**Action:** Run `scripts/seed_loader.py` on VPS to populate entity graph
-**Result:** 123 models, 32 components, 29 relations populated
-**Note:** This is done — no action needed
-
----
-
-## Thread 14: No manufacturer seed component_categories
-
-**Status:** Seed loader loaded 0 component categories
-**Cause:** `component_categories.yml` format may not match loader expectations
-**Impact:** component_category table is empty
-**Effort:** Low — fix seed format or loader
-**Priority:** Low
-
----
-
-## Thread 15: powproducts CI failure
-
-**Status:** External (powproducts repo)
-**Issue:** Latest GitHub Actions test run failed in powproducts
-**Impact:** Cross-repo integration may be affected
-**Effort:** Investigate and fix in powproducts repo
-**Priority:** Medium — blocks Phase 6 integration
-
----
-
-## Thread 16: Vendor repo parsing
-
-**Status:** 7 repos cloned, not parsed
-**Repos:** ABB, awesome-robot-descriptions, FANUC, KUKA, MuJoCo Menagerie, Universal Robot, urdf_files_dataset
-**What's needed:** URDF parser to extract robot specs, BOM parser for component relations
-**Effort:** High (5-7 days for BOM parser)
-**Priority:** P1 — entity graph from live data
-**Value:** Highest — populates robot→component→supplier graph without API access
-
----
-
-## Thread 17: No integration tests
-
-**Status:** Tests exist but only use mocks
-**What's needed:** Tests against recorded API responses or live APIs (behind flag)
-**Effort:** Medium (3-4 days)
-**Priority:** P1 — quality assurance
-
----
-
-## Thread 18: No R2 backup
-
-**Status:** Raw data not backed up to cloud
-**What's needed:** R2 sync script, credentials, verification
-**Effort:** Medium (2-3 days)
-**Priority:** P2 — data safety
+**Status:** powops only reads collector_run and source_health
+**What:** Could add summary view or powrobots-specific MCP tools
+**Workaround:** Use powrobots CLI (`powrobots robots`, `powrobots models`)
+**Effort:** 1-2 days
+**Priority:** P2 — nice to have for agent visibility
 
 ---
 
@@ -221,7 +231,6 @@ The traders CSV is parsed (561 businesses), but the trade statistics (values, vo
 
 **Status:** Deferred per review.md
 **When:** When SQLite query complexity demands it
-**What:** Analytical queries across large datasets, Parquet export
 **Effort:** High
 **Priority:** Phase 3+
 
@@ -231,7 +240,7 @@ The traders CSV is parsed (561 businesses), but the trade statistics (values, vo
 
 **Status:** Not implemented
 **What:** Global trade flow data for robotics commodity codes
-**Effort:** High (needs API registration + complex data)
+**Effort:** High
 **Priority:** Phase 4 — global flow garden
 
 ---
@@ -239,13 +248,19 @@ The traders CSV is parsed (561 businesses), but the trade statistics (values, vo
 ## Decision log
 
 ### 2026-09-23: CSV over HTML for HMRC traders
-HMRC provides CSV download endpoint. Decided to fetch CSV instead of parsing HTML tables. More reliable, structured, and includes all 564 traders (not paginated 50 per page).
+HMRC provides CSV download endpoint. Decided to fetch CSV instead of parsing HTML tables. More reliable, structured, and includes all 564 traders.
 
 ### 2026-09-23: Skip JS-rendered pages
-BARA, RBTX, and apprenticeships all require JavaScript. Decided to accept as evidence-only for now rather than introduce browser automation dependency. Revisit when API endpoints are discovered.
+BARA, RBTX, and apprenticeships all require JavaScript. Decided to accept as evidence-only for now rather than introduce browser automation dependency.
 
 ### 2026-09-23: Collection receipt format aligned with roadmap
-Added collector_sha, cursor_before/after, validation_passed, schema_version to collector_run. This aligns with roadmap Phase 2 receipt format without breaking existing consumers.
+Added collector_sha, cursor_before/after, validation_passed, schema_version to collector_run.
 
 ### 2026-09-23: source_health auto-computed
-Decided to compute source_health automatically in log_run() rather than requiring separate computation step. Ensures health is always up-to-date after every collection run.
+Decided to compute source_health automatically in log_run() rather than requiring separate computation step.
+
+### 2026-09-23: Consumer robots are the priority
+The global devplan (devplan.md, goldmoat2.md, commercial2.md) makes clear that consumer robot spare parts (Dreame, Roborock, iRobot) are the first commercial opportunity, not industrial robots. Current powrobots data is 100% industrial. This is the biggest gap.
+
+### 2026-09-23: BOM parsing is the highest value unbuilt collector
+The vendor repos (ABB, FANUC, KUKA, UR, MuJoCo) are cloned but not parsed. Parsing URDF files would populate the entity graph with real robot→component relationships from actual hardware, not just seeds.
