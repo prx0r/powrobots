@@ -40,3 +40,54 @@ Prices below are advertised starting prices, not verified prices for a complete 
 For personalised character bodies, start with JLC3DP's SLA or MJF services. Use CNC for brackets, shafts and load-bearing parts that cannot be produced reliably by cheaper printing methods. For full-colour characters, compare WJP against printing a plain body and adding colour separately.
 
 A useful feature of JLC3DP is that PCB and 3D-printing orders can be combined into one parcel. That reduces delivery coordination, although it does not mean they will assemble the parts together.
+
+## 3. Who will assemble the entire robot?
+
+This is the important missing supplier category for POW: a factory that takes your PCB, printed enclosure, motors, sensors and firmware, then delivers a functioning device rather than separate components.
+
+One-unit prototypes are not necessarily available through instant checkout. I have distinguished online ordering from full-product assembly requiring engineering review.
+
+| Manufacturer | One-unit option | What they actually offer |
+| --- | --- | --- |
+| PCBWay, China | Online submission | Full OEM service, including PCB, mechanical enclosure and box build. Select Box Build Assembly in the PCB ordering interface; final pricing follows file review. |
+| Makerfabs, Shenzhen | One-unit PCBA; final assembly reviewed | Electronics, programming and testing. They also document assembling customers' externally manufactured structural parts into finished ESP32 products. |
+| PCBark, China | Advertises no MOQ | Full PCBA, enclosure integration, wiring, programming and packaging from prototypes onward. Custom order rather than instant checkout. |
+
+### PCBWay's full-product ordering route
+
+1. Open its PCB quotation form and enable assembly.
+2. Select Box Build Assembly: Yes.
+3. Upload Gerbers, BOM, pick-and-place file, enclosure CAD and assembly instructions.
+4. Submit the order for engineering review and the finished-product quotation.
+
+These are actual complete-product manufacturing services, but published information does not establish a fixed checkout price for one personalised robot. A one-off prototype may carry engineering and setup charges that make it uneconomic as an Etsy order.
+
+One useful alternative from Seeed is to customise an existing, tested device rather than manufacture new electronics. Its programme advertises a one-piece minimum for logo, packaging and supported firmware customisation, but substantial one-time setup charges.
+
+## 4. Cheap electronics and robotics suppliers
+
+For the first prototypes, you need suppliers that let you buy individual components without the minimum quantities imposed by wholesale distributors.
+
+| Supplier | What to buy | Individual orders |
+| --- | --- | --- |
+| LCSC | ESP32 modules, ICs, passives, connectors and PCB components | Many components from 1; check each SKU. https://www.lcsc.com/ |
+| AliExpress | Complete sensor modules, servos, motors, OLEDs, cables and prototype kits | Commonly 1. https://www.aliexpress.com/ |
+| M5Stack | Preassembled ESP32 modules, small screens, sensors and plug-in robotics modules | Individual items. https://shop.m5stack.com/ |
+| DFRobot | Soil sensors, motor drivers, controllers, robotics kits | Individual retail products. https://www.dfrobot.com/ |
+| Waveshare | Camera modules, displays, servos and robot control boards | Individual retail products. https://www.waveshare.com/ |
+| RobotDigg | Motors, linear mechanisms, robotic arms, extrusion and mechanical hardware | Retail listings; check minimum per part. https://www.robotdigg.com/ |
+| Elecrow | Maker electronics, sensors, display modules and PCB assembly | Offers one-piece PCBA. https://www.elecrow.com/ |
+| Seeed Studio | Grove modules, development boards, cables and IoT components | Individual modules, plus a one-board PCBA service. https://www.seeedstudio.com/ |
+
+### Accessing cheaper domestic Chinese prices
+
+Taobao and 1688 are additional sourcing channels. For a foreign buyer, Superbuy can purchase from Chinese sellers, consolidate orders at its warehouse and arrange international delivery. Its standard purchasing service advertises no purchasing fee for Taobao and 1688; domestic and international shipping still apply.
+
+Direct links:
+- https://www.taobao.com/
+- https://www.1688.com/
+- https://www.superbuy.com/en/page/shopping1688/
+
+The distinction is that Taobao commonly serves individual retail purchases, whereas 1688 sellers may impose wholesale minimums. Superbuy cannot override a supplier's MOQ and does not provide professional functional testing of purchased electronics.
+
+For POW, record the original supplier price separately from domestic delivery, consolidation fees, international shipping and landed cost. A component that is cheaper on 1688 can be more expensive when ordered individually and shipped to Britain.
