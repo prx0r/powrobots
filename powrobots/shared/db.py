@@ -575,6 +575,278 @@ def status():
     conn.close()
 
 
+# ─── Seed Data ──────────────────────────────────────────────
+
+# All 15 powrobots sources with their access method and rights status.
+# Sources that need API keys are marked 'approved' (key required, review passed).
+# Open sources are marked 'open'.
+SOURCES_SEED = [
+    # P0 — Open / No Auth
+    {
+        'source_id': 'hmrc_traders',
+        'name': 'HMRC Trader Search',
+        'authority': 'HMRC',
+        'category': 'uk_trade',
+        'access_method': 'web_scrape',
+        'cadence': 'daily',
+        'requires_auth': 0,
+        'reliability_tier': 'B',
+        'rights_status': 'open',
+        'licence': 'OGL',
+        'notes': 'HMRC UK Trade Info — trader search for HS 847950',
+    },
+    {
+        'source_id': 'hmrc_trade',
+        'name': 'HMRC Trade Statistics',
+        'authority': 'HMRC',
+        'category': 'uk_trade',
+        'access_method': 'web_scrape',
+        'cadence': 'daily',
+        'requires_auth': 0,
+        'reliability_tier': 'B',
+        'rights_status': 'open',
+        'licence': 'OGL',
+        'notes': 'HMRC UK Trade Info — trade statistics index page',
+    },
+    {
+        'source_id': 'ukri_gtr',
+        'name': 'UKRI Gateway to Research',
+        'authority': 'UKRI',
+        'category': 'grants',
+        'access_method': 'api',
+        'cadence': 'daily',
+        'requires_auth': 0,
+        'reliability_tier': 'A',
+        'rights_status': 'open',
+        'licence': 'OGL',
+        'notes': 'Public API — robotics/automation research projects',
+    },
+    {
+        'source_id': 'rbtx',
+        'name': 'RBTX Robot Marketplace',
+        'authority': 'RBTX/igus',
+        'category': 'marketplace',
+        'access_method': 'web_scrape',
+        'cadence': 'daily',
+        'requires_auth': 0,
+        'reliability_tier': 'B',
+        'rights_status': 'open',
+        'licence': 'TOS_review',
+        'notes': 'Low-cost robot marketplace — UK + China pricing',
+    },
+    {
+        'source_id': 'opss_safety',
+        'name': 'OPSS Safety Alerts',
+        'authority': 'OPSS',
+        'category': 'safety',
+        'access_method': 'web_scrape',
+        'cadence': 'daily',
+        'requires_auth': 0,
+        'reliability_tier': 'A',
+        'rights_status': 'open',
+        'licence': 'OGL',
+        'notes': 'GOV.UK product safety alerts — machinery category',
+    },
+    {
+        'source_id': 'bara_directory',
+        'name': 'BARA/Automate UK Directory',
+        'authority': 'BARA',
+        'category': 'integrators',
+        'access_method': 'web_scrape',
+        'cadence': 'weekly',
+        'requires_auth': 0,
+        'reliability_tier': 'B',
+        'rights_status': 'open',
+        'licence': 'TOS_review',
+        'notes': 'British Automation & Robot Association member directory',
+    },
+    {
+        'source_id': 'bgs_minerals',
+        'name': 'BGS World Mineral Statistics',
+        'authority': 'BGS',
+        'category': 'minerals',
+        'access_method': 'web_scrape',
+        'cadence': 'weekly',
+        'requires_auth': 0,
+        'reliability_tier': 'A',
+        'rights_status': 'open',
+        'licence': 'OGL',
+        'notes': 'UK critical minerals supply data',
+    },
+    {
+        'source_id': 'contracts_finder',
+        'name': 'Contracts Finder',
+        'authority': 'Contracts Finder',
+        'category': 'procurement',
+        'access_method': 'api',
+        'cadence': 'daily',
+        'requires_auth': 0,
+        'reliability_tier': 'A',
+        'rights_status': 'open',
+        'licence': 'OGL',
+        'notes': 'UK public procurement — robotics/automation contracts',
+    },
+    {
+        'source_id': 'ons_ppi',
+        'name': 'ONS Producer Price Index',
+        'authority': 'ONS',
+        'category': 'prices',
+        'access_method': 'web_scrape',
+        'cadence': 'daily',
+        'requires_auth': 0,
+        'reliability_tier': 'A',
+        'rights_status': 'open',
+        'licence': 'OGL',
+        'notes': 'UK inflation/price indices — electronics category',
+    },
+    {
+        'source_id': 'find_apprenticeship',
+        'name': 'Find an Apprenticeship',
+        'authority': 'Education and Skills Funding Agency',
+        'category': 'labour',
+        'access_method': 'web_scrape',
+        'cadence': 'daily',
+        'requires_auth': 0,
+        'reliability_tier': 'B',
+        'rights_status': 'open',
+        'licence': 'OGL',
+        'notes': 'UK robotics/automation apprenticeship listings',
+    },
+    # P0 — Needs API Key (free)
+    {
+        'source_id': 'companies_house',
+        'name': 'Companies House',
+        'authority': 'Companies House',
+        'category': 'corporate',
+        'access_method': 'api',
+        'cadence': 'daily',
+        'requires_auth': 1,
+        'reliability_tier': 'A',
+        'rights_status': 'approved',
+        'licence': 'OGL',
+        'notes': 'UK company filings — key env: COMPANIES_HOUSE_API_KEY',
+    },
+    {
+        'source_id': 'mouser',
+        'name': 'Mouser Electronics',
+        'authority': 'Mouser',
+        'category': 'components',
+        'access_method': 'api',
+        'cadence': 'daily',
+        'requires_auth': 1,
+        'reliability_tier': 'A',
+        'rights_status': 'approved',
+        'licence': 'TOS_review',
+        'notes': 'Electronic component pricing/stock — key env: MOUSER_API_KEY',
+    },
+    {
+        'source_id': 'farnell',
+        'name': 'Farnell/element14',
+        'authority': 'Farnell',
+        'category': 'components',
+        'access_method': 'api',
+        'cadence': 'daily',
+        'requires_auth': 1,
+        'reliability_tier': 'A',
+        'rights_status': 'approved',
+        'licence': 'TOS_review',
+        'notes': 'UK electronic component catalogue — key env: FARNELL_API_KEY',
+    },
+    {
+        'source_id': 'lcsc',
+        'name': 'LCSC Electronics',
+        'authority': 'LCSC',
+        'category': 'components',
+        'access_method': 'api',
+        'cadence': 'daily',
+        'requires_auth': 1,
+        'reliability_tier': 'A',
+        'rights_status': 'approved',
+        'licence': 'TOS_review',
+        'notes': 'Chinese electronic component pricing — key env: LCSC_API_KEY',
+    },
+    {
+        'source_id': 'ebay_uk',
+        'name': 'eBay UK',
+        'authority': 'eBay',
+        'category': 'aftermarket',
+        'access_method': 'api',
+        'cadence': 'daily',
+        'requires_auth': 1,
+        'reliability_tier': 'B',
+        'rights_status': 'approved',
+        'licence': 'TOS_review',
+        'notes': 'UK secondhand robotics equipment — key env: EBAY_APP_ID',
+    },
+]
+
+
+def seed_rights(conn=None):
+    """Seed source_rights table for all 15 collectors.
+
+    Returns (inserted, skipped) counts.
+    """
+    close = False
+    if conn is None:
+        conn = get_db()
+        close = True
+    inserted = 0
+    skipped = 0
+    for src in SOURCES_SEED:
+        exists = conn.execute(
+            "SELECT 1 FROM source_rights WHERE source_id = ?", (src['source_id'],)
+        ).fetchone()
+        if exists:
+            skipped += 1
+            continue
+        conn.execute(
+            "INSERT INTO source_rights (source_id, status, licence, notes, reviewed_at) "
+            "VALUES (?, ?, ?, ?, datetime('now'))",
+            (src['source_id'], src['rights_status'], src['licence'], src['notes']),
+        )
+        inserted += 1
+    conn.commit()
+    if close:
+        conn.close()
+    return inserted, skipped
+
+
+def seed_registry(conn=None):
+    """Seed source_registry table for all 15 collectors.
+
+    Returns (inserted, skipped) counts.
+    """
+    close = False
+    if conn is None:
+        conn = get_db()
+        close = True
+    inserted = 0
+    skipped = 0
+    for src in SOURCES_SEED:
+        exists = conn.execute(
+            "SELECT 1 FROM source_registry WHERE source_id = ?", (src['source_id'],)
+        ).fetchone()
+        if exists:
+            skipped += 1
+            continue
+        conn.execute(
+            "INSERT INTO source_registry "
+            "(source_id, name, authority, category, access_method, cadence, "
+            " requires_auth, reliability_tier, collection_allowed, enabled) "
+            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            (src['source_id'], src['name'], src['authority'], src['category'],
+             src['access_method'], src['cadence'], src['requires_auth'],
+             src['reliability_tier'],
+             'open' if src['rights_status'] == 'open' else 'needs_key',
+             1),
+        )
+        inserted += 1
+    conn.commit()
+    if close:
+        conn.close()
+    return inserted, skipped
+
+
 if __name__ == '__main__':
     import sys
     if len(sys.argv) > 1 and sys.argv[1] == 'status':

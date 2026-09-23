@@ -1,0 +1,13 @@
+[Unit]
+Description=POWRobots data collection (all sources)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/home/ubuntu/powrobots/scripts/collect-all.sh
+WorkingDirectory=/home/ubuntu/powrobots
+Environment=PYTHONPATH=/home/ubuntu
+TimeoutStartSec=600
+StandardOutput=journal
+StandardError=journal
