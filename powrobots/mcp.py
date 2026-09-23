@@ -1,7 +1,7 @@
-"""POW MCP tools for Muse integration.
+"""POW MCP Adapter — connects our tools to Muse/ChatGPT/Blender.
 
-Exposes device status, control, and BOM resolution tools
-so Muse can discover and interact with POW consumer agents.
+This is the bridge between AI agents and our parts intelligence.
+Exposes resolve_bom, find_substitutes, quote_build, and submission tools.
 
 Usage:
     python -m powrobots.mcp
@@ -20,7 +20,7 @@ except ImportError:
     HAS_MCP = False
 
 if HAS_MCP:
-    mcp = MCPServer("pow-devices")
+    mcp = MCPServer("pow-glimlings")
 
 
 def _run_sync(fn, *args, **kwargs):
@@ -32,172 +32,115 @@ def _get_db():
 
 
 if HAS_MCP:
-    @mcp.tool()
-    async def pow_device_status(device_id: str = "") -> str:
-        """Get current sensor readings from a POW device.
-
-        Args:
-            device_id: Device ID (e.g. plant-sprite-001, desk-goblin-001)
-        """
-        conn = _get_db()
-        try:
-            # Check latest device event
-            rows = conn.execute(
-                """SELECT normalized_json FROM source_record
-                   WHERE source_id LIKE ? AND dataset = 'device_event'
-                   ORDER BY retrieved_at DESC LIMIT 1""",
-                (f"%{device_id}%",)
-            ).fetchall()
-
-            if rows:
-                return json.dumps(json.loads(rows[0][0]), indent=2)
-
-            return json.dumps({
-                "device_id": device_id,
-                "status": "no_data",
-                "message": "Device not yet reporting. Check it's connected to WiFi.",
-            })
-        finally:
-            conn.close()
-
+    # ─── BOM Resolution ──────────────────────────────────────
 
     @mcp.tool()
-    async def pow_device_control(device_id: str, action: str, params: str = "{}") -> str:
-        """Control a POW device actuator.
+    async def pow_resolve_bom(model_id: str) -> str:
+        """Resolve full BOM for a robot model with pricing from multiple suppliers.
 
         Args:
-            device_id: Device ID
-            action: Control action (led, relay, display, buzzer)
-            params: JSON parameters (e.g. {"r": 255, "g": 0, "b": 0} for LED)
-        """
-        conn = _get_db()
-        try:
-            now = datetime.now(timezone.utc).isoformat()
-            event = {
-                "action": action,
-                "params": json.loads(params),
-                "timestamp": now,
-            }
-            conn.execute(
-                """INSERT INTO source_record
-                (source_record_id, source_id, dataset, source_native_id,
-                 retrieved_at, normalized_json, payload_hash, raw_payload_hash,
-                 parser_id, parser_version)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
-                (f"ctrl:{device_id}:{now}", device_id, "device_control",
-                 f"ctrl_{action}", now, json.dumps(event),
-                 "control", "control", "mcp", "1.0")
-            )
-            conn.commit()
-            return json.dumps({"device_id": device_id, "action": action, "status": "sent"})
-        finally:
-            conn.close()
-
-
-    @mcp.tool()
-    async def pow_resolve_bom(product_type: str) -> str:
-        """Resolve BOM for a POW product type.
-
-        Args:
-            product_type: Product type (plant-sprite, desk-goblin, desk-companion, etc.)
+            model_id: Robot model ID (e.g. so-101, roborock-s7, pow-agent-node-plant)
         """
         from powrobots.resolve import resolve_bom
-
-        bom_map = {
-            "plant-sprite": "pow-agent-node-plant",
-            "desk-goblin": "pow-agent-node-desk",
-            "desk-companion": "pow-agent-node-desk",
-            "lamp-agent": "pow-agent-node-lamp",
-            "speaker-agent": "pow-agent-node-speaker",
-            "camera-agent": "pow-agent-node-camera",
-            "tiny-robot": "pow-agent-node-robot",
-        }
-
-        model_id = bom_map.get(product_type)
-        if not model_id:
-            return json.dumps({"error": f"Unknown product: {product_type}. Available: {list(bom_map.keys())}"})
-
         result = await _run_sync(resolve_bom, model_id)
         return json.dumps(result, indent=2)
 
 
     @mcp.tool()
-    async def pow_find_part(query: str) -> str:
-        """Find a robot part by name or description.
+    async def pow_find_substitutes(component_id: str) -> str:
+        """Find substitute parts for a component with pricing.
 
         Args:
-            query: Part name, description, or model number
+            component_id: Component ID to find alternatives for
+        """
+        from powrobots.resolve import find_substitutes
+        result = await _run_sync(find_substitutes, component_id)
+        return json.dumps(result, indent=2)
+
+
+    @mcp.tool()
+    async def pow_optimize_bom(model_id: str, strategy: str = "cheapest") -> str:
+        """Optimize BOM procurement by strategy.
+
+        Args:
+            model_id: Robot model ID
+            strategy: 'cheapest' or 'fastest'
+        """
+        from powrobots.resolve import optimize_bom
+        result = await _run_sync(optimize_bom, model_id, strategy)
+        return json.dumps(result, indent=2)
+
+
+    # ─── Parts Search ──────────────────────────────────────────
+
+    @mcp.tool()
+    async def pow_list_components(query: str = "", category: str = "") -> str:
+        """Search components by name or category.
+
+        Args:
+            query: Search term (e.g. 'servo', 'ESP32', 'battery')
+            category: Filter by category (e.g. 'servo_motor', 'sensor')
         """
         conn = _get_db()
         try:
-            rows = conn.execute(
-                """SELECT component_id, canonical_name, category, description
-                   FROM component
-                   WHERE canonical_name LIKE ? OR description LIKE ?
-                   LIMIT 10""",
-                (f"%{query}%", f"%{query}%")
-            ).fetchall()
+            if query:
+                rows = conn.execute(
+                    "SELECT component_id, canonical_name, category, description "
+                    "FROM component WHERE canonical_name LIKE ? OR description LIKE ? LIMIT 20",
+                    (f"%{query}%", f"%{query}%")
+                ).fetchall()
+            elif category:
+                rows = conn.execute(
+                    "SELECT component_id, canonical_name, category, description "
+                    "FROM component WHERE category = ? LIMIT 20",
+                    (category,)
+                ).fetchall()
+            else:
+                rows = conn.execute(
+                    "SELECT component_id, canonical_name, category, description "
+                    "FROM component LIMIT 20"
+                ).fetchall()
 
-            results = []
-            for r in rows:
-                results.append({
-                    "component_id": r[0],
-                    "name": r[1],
-                    "category": r[2],
-                    "description": r[3],
-                })
-
-            return json.dumps({"query": query, "results": results, "count": len(results)})
+            results = [{"id": r[0], "name": r[1], "category": r[2], "description": r[3]} for r in rows]
+            return json.dumps({"count": len(results), "components": results}, indent=2)
         finally:
             conn.close()
 
 
     @mcp.tool()
     async def pow_robot_info(model_id: str) -> str:
-        """Get information about a robot model.
+        """Get detailed info about a robot model including parts and compatibility.
 
         Args:
-            model_id: Robot model ID (e.g. roborock-s7, so-101)
+            model_id: Robot model ID
         """
         conn = _get_db()
         try:
             row = conn.execute(
-                """SELECT model_id, canonical_name, manufacturer_id, robot_type,
-                          axes, payload_kg, reach_mm, mass_kg
-                   FROM robot_model WHERE model_id = ?""",
-                (model_id,)
+                "SELECT model_id, canonical_name, manufacturer_id, robot_type, "
+                "axes, payload_kg, reach_mm, mass_kg "
+                "FROM robot_model WHERE model_id = ?", (model_id,)
             ).fetchone()
 
             if not row:
                 return json.dumps({"error": f"Model '{model_id}' not found"})
 
-            # Get parts
             parts = conn.execute(
-                """SELECT c.canonical_name, c.category, pr.confidence
-                   FROM product_relation pr
-                   JOIN component c ON c.component_id = pr.dst_entity_id
-                   WHERE pr.src_entity_id = ? AND pr.relation_type = 'REQUIRES'""",
-                (model_id,)
+                "SELECT c.canonical_name, c.category, pr.confidence "
+                "FROM product_relation pr JOIN component c ON c.component_id = pr.dst_entity_id "
+                "WHERE pr.src_entity_id = ? AND pr.relation_type = 'REQUIRES'", (model_id,)
             ).fetchall()
 
-            # Get compatible substitutes
             subs = conn.execute(
-                """SELECT c.canonical_name, pr.confidence
-                   FROM product_relation pr
-                   JOIN component c ON c.component_id = pr.src_entity_id
-                   WHERE pr.dst_entity_id = ? AND pr.relation_type = 'compatible'""",
-                (model_id,)
+                "SELECT c.canonical_name, pr.confidence "
+                "FROM product_relation pr JOIN component c ON c.component_id = pr.src_entity_id "
+                "WHERE pr.dst_entity_id = ? AND pr.relation_type = 'compatible'", (model_id,)
             ).fetchall()
 
             return json.dumps({
-                "model_id": row[0],
-                "name": row[1],
-                "manufacturer": row[2],
-                "type": row[3],
-                "axes": row[4],
-                "payload_kg": row[5],
-                "reach_mm": row[6],
-                "mass_kg": row[7],
+                "model": {"id": row[0], "name": row[1], "manufacturer": row[2],
+                          "type": row[3], "axes": row[4], "payload_kg": row[5],
+                          "reach_mm": row[6], "mass_kg": row[7]},
                 "parts": [{"name": p[0], "category": p[1], "confidence": p[2]} for p in parts],
                 "substitutes": [{"name": s[0], "confidence": s[1]} for s in subs],
             }, indent=2)
@@ -205,55 +148,91 @@ if HAS_MCP:
             conn.close()
 
 
+    # ─── Manufacturing ─────────────────────────────────────────
+
     @mcp.tool()
-    async def pow_find_substitutes(component_id: str) -> str:
-        """Find substitute parts for a component.
+    async def pow_quote_build(model_id: str) -> str:
+        """Get a full assembly quote for a robot model.
 
         Args:
-            component_id: Component ID to find alternatives for
+            model_id: Robot model ID
+        """
+        from powrobots.resolve import resolve_bom
+        bom = await _run_sync(resolve_bom, model_id)
+
+        if "error" in bom:
+            return json.dumps(bom)
+
+        # Calculate assembly costs
+        parts_cost = bom["total_estimated_cost"]
+        assembly_cost = {"USD": 5.00, "GBP": 4.00}
+        packaging_cost = {"USD": 3.00, "GBP": 2.50}
+
+        total = {}
+        for curr in set(list(parts_cost.keys()) + list(assembly_cost.keys()) + list(packaging_cost.keys())):
+            total[curr] = parts_cost.get(curr, 0) + assembly_cost.get(curr, 0) + packaging_cost.get(curr, 0)
+
+        return json.dumps({
+            "model": bom.get("model", {}),
+            "parts_cost": parts_cost,
+            "assembly_cost": assembly_cost,
+            "packaging_cost": packaging_cost,
+            "total_estimated": {k: round(v, 2) for k, v in total.items() if v > 0},
+            "components_count": len(bom.get("components", [])),
+            "suppliers": bom.get("suppliers_used", []),
+        }, indent=2)
+
+
+    @mcp.tool()
+    async def pow_list_robots(robot_type: str = "") -> str:
+        """List all robot models, optionally filtered by type.
+
+        Args:
+            robot_type: Filter by type (robot_vacuum, robotic_arm, robot_mower, consumer_agent, etc.)
         """
         conn = _get_db()
         try:
-            # Get the component
-            comp = conn.execute(
-                "SELECT canonical_name, category, description FROM component WHERE component_id = ?",
-                (component_id,)
-            ).fetchone()
-
-            if not comp:
-                return json.dumps({"error": f"Component '{component_id}' not found"})
-
-            # Find substitutes
-            subs = conn.execute(
-                """SELECT c.canonical_name, c.component_id, c.category, pr.confidence
-                   FROM product_relation pr
-                   JOIN component c ON c.component_id = pr.src_entity_id
-                   WHERE pr.dst_entity_id = ? AND pr.relation_type = 'compatible'""",
-                (component_id,)
-            ).fetchall()
-
-            # Get pricing for each
-            results = []
-            for name, cid, cat, conf in subs:
-                prices = conn.execute(
-                    """SELECT d.canonical_name, cmo.unit_price_1, cmo.currency
-                       FROM component_market_observation cmo
-                       JOIN distributor d ON d.distributor_id = cmo.distributor_id
-                       WHERE cmo.component_id = ?""",
-                    (cid,)
+            if robot_type:
+                rows = conn.execute(
+                    "SELECT model_id, canonical_name, manufacturer_id, robot_type "
+                    "FROM robot_model WHERE robot_type = ? ORDER BY canonical_name",
+                    (robot_type,)
                 ).fetchall()
-                results.append({
-                    "name": name, "id": cid, "category": cat,
-                    "confidence": conf,
-                    "pricing": [{"supplier": p[0], "price": p[1], "currency": p[2]} for p in prices],
-                })
+            else:
+                rows = conn.execute(
+                    "SELECT model_id, canonical_name, manufacturer_id, robot_type "
+                    "FROM robot_model ORDER BY robot_type, canonical_name"
+                ).fetchall()
 
-            return json.dumps({
-                "component": comp[0],
-                "category": comp[1],
-                "substitutes": results,
-                "count": len(results),
-            }, indent=2)
+            results = [{"id": r[0], "name": r[1], "manufacturer": r[2], "type": r[3]} for r in rows]
+            return json.dumps({"count": len(results), "robots": results}, indent=2)
+        finally:
+            conn.close()
+
+
+    @mcp.tool()
+    async def pow_list_products(product_line: str = "") -> str:
+        """List products in the Glimlings catalogue.
+
+        Args:
+            product_line: Filter by line (glimlings, etc.)
+        """
+        conn = _get_db()
+        try:
+            if product_line:
+                rows = conn.execute(
+                    "SELECT product_id, product_name, product_line, target_price_gbp, margin_pct "
+                    "FROM product WHERE product_line = ? ORDER BY target_price_gbp",
+                    (product_line,)
+                ).fetchall()
+            else:
+                rows = conn.execute(
+                    "SELECT product_id, product_name, product_line, target_price_gbp, margin_pct "
+                    "FROM product ORDER BY product_line, target_price_gbp"
+                ).fetchall()
+
+            results = [{"id": r[0], "name": r[1], "line": r[2], "price_gbp": r[3], "margin": r[4]} for r in rows]
+            return json.dumps({"count": len(results), "products": results}, indent=2)
         finally:
             conn.close()
 
