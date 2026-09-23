@@ -1,191 +1,257 @@
 # AGENTS.md — POWRobots
 
-## What this repo does
+Everything a fresh agent needs to know about this repository.
 
-POWRobots is the parts intelligence layer for UK robotics. It collects data, builds a compatibility graph, and exposes it via MCP so AI agents can answer: "what part do I need, where do I get it, and what does it cost?"
+---
 
-## The product (MCP-first)
+## What this is
 
-The product is NOT a graph, NOT a storefront, NOT a robot builder.
-The product is the **MCP that connects AI agents to parts intelligence.**
+POWRobots is a **platform for personalised physical robotics products**. It has three layers:
 
-```
-ChatGPT/Muse:  "That's a Roborock S7, LiDAR motor probably failed"
-    ↓
-POW MCP:       resolve_bom("roborock-s7") → LDS01RR, £22 Amazon UK, £25 eBay
-    ↓
-ChatGPT/Muse:  "Repair quote: £22 part + £50 labour = £72"
-    ↓
-POW records:   failure tracked, supplier performance logged, demand pattern noted
-```
+1. **Engines** — 5 reusable electronics platforms (SENSE, REMEMBER, ACT, TALK, SEE)
+2. **Parts graph** — 143 components, 16 suppliers, 129 prices, 234 compatibility relations
+3. **MCP** — API that connects AI agents (Muse, ChatGPT) to the parts graph
 
-We don't build the brain (ChatGPT/Muse does that). We build the API that gives the brain access to the parts graph.
+The platform lets anyone design, build, and sell custom robot companions (called **Glimlings**).
+
+---
+
+## Core concepts
+
+### Engine
+A reusable electronics platform that provides a specific capability.
+
+| Engine | Capability | Key components |
+|--------|-----------|---------------|
+| **SENSE** | Reads moisture, light, temp, NFC | ESP32, sensors |
+| **REMEMBER** | Keeps time, tracks history | ESP32, RTC, SD |
+| **ACT** | Controls lights, servos, relays | ESP32, servo, LED, relay |
+| **TALK** | Speaks, listens, buttons | ESP32, speaker, mic |
+| **SEE** | Captures images, motion | ESP32-CAM, servos |
+
+### Product
+A personalised physical companion built from one or more engines + enclosure + customisation.
+
+Examples: Plant Sprite (SENSE+ACT), Desk Goblin (ACT+display), Glimlings (any engine combination).
+
+### Glimling
+A named, personalised creature that inhabits an everyday object and connects to an AI agent.
+
+Brand: **Glimlings** — "Little spirits for the things you love."
+Individual: **A Glimling** — each has its own name, personality, and digital identity.
+
+### Parts graph
+The knowledge base of which components exist, what they cost, which suppliers sell them, and which parts are compatible with which robots.
+
+### MCP (Model Context Protocol)
+The API that lets AI agents query the parts graph. Muse, ChatGPT, or any MCP-compatible agent can use it.
+
+---
 
 ## How to run
 
 ```bash
-# Install
 pip install -e ".[dev]"
-
-# Initialize database
-python3 -m powrobots.shared.db
-
-# Seed source rights and registry
-python3 -m powrobots.cli seed
-
-# Run all collectors
-python3 -m powrobots.cli collect all
-
-# Check status
-python3 -m powrobots.cli health
-python3 -m powrobots.cli robots
-
-# Run tests
+python3 -m powrobots.shared.db      # init database
+python3 -m powrobots.cli seed       # seed rights + registry
+python3 -m powrobots.cli collect all # run all collectors
+python3 -m powrobots.cli health     # check status
+python3 -m powrobots.cli robots     # entity graph summary
+python3 -m powrobots.cli models     # list robot models
+python3 -m powrobots.cli components # list components
 POWROBOTS_DB=/tmp/test.db python3 -m pytest tests/ -v
 ```
 
-## How POWOps monitors this repo
-
-POWOps reads `collector_run` and `source_health` tables from `warehouse/powrobots.db` via the `collector_db` health check.
-
-```yaml
-# In powops sources.yaml:
-powrobots:
-  path: /home/ubuntu/powrobots
-  health_check: collector_db
-  db_path: warehouse/powrobots.db
-```
-
-### What powops checks
-
-1. Opens `warehouse/powrobots.db`
-2. Queries `collector_run` for latest row per source
-3. Compares `started_at` against `max_staleness` (72h)
-4. Returns status: ok, stale, error, no_key, unknown
-
-### Status values
-
-| Status | Meaning |
-|--------|---------|
-| ok | Last run within staleness, no errors |
-| stale | Last run exceeded max_staleness |
-| error | Last run had errors |
-| no_key | API key env var not set |
-| unknown | No runs recorded |
+---
 
 ## CLI commands
 
-| Command | Description |
+| Command | What it does |
 |---------|-------------|
-| `powrobots status` | Row counts per table |
-| `powrobots sources` | List registered sources |
-| `powrobots seed` | Seed source_rights + source_registry |
-| `powrobots collect <source>` | Run a collector |
-| `powrobots collect all` | Run all collectors |
-| `powrobots health` | Last collector run per source |
-| `powrobots robots` | Entity graph summary |
-| `powrobots models` | List robot models |
-| `powrobots components` | List components |
-| `powrobots organisations` | List organisations |
-| `powrobots validate` | Check everything is wired |
+| `status` | Database row counts |
+| `sources` | List registered sources |
+| `seed` | Seed source_rights + source_registry |
+| `validate` | Check everything is wired |
+| `health` | Last collector run per source |
+| `robots` | Entity graph summary |
+| `models` | List all robot models |
+| `components` | List all components |
+| `organisations` | List organisations (first 50) |
+| `collect <source>` | Run a collector |
+| `collect all` | Run all collectors |
 
-## Collectors
+---
 
-### Active (no auth, fetching live data)
+## Architecture
 
-| Source | Records | What it collects |
-|--------|---------|-----------------|
-| hmrc_traders | 561 | UK businesses trading HS 847950 (industrial robots) |
-| opss_safety | 50 | Product safety alerts (machinery) |
-| contracts_finder | 20 | Government procurement notices |
-| hmrc_trade | 1 | Trade statistics index |
-| ukri_gtr | 0 | Research projects (already collected) |
-| bgs_minerals | 1 | Mineral statistics |
-| ons_ppi | 1 | Price indices |
-| bara_directory | 1 | Integrator directory (JS-blocked) |
-| find_apprenticeship | 1 | Apprenticeship landing page (JS-blocked) |
-| rbtx | 2 | Robot marketplace (JS-blocked) |
-
-### Needs API key
-
-| Source | Env var | Parser | Status |
-|--------|---------|--------|--------|
-| companies_house | COMPANIES_HOUSE_API_KEY | Complete | Working (250 companies) |
-| mouser | MOUSER_API_KEY | Complete | Needs key |
-| farnell | FARNELL_API_KEY | Complete | Needs key |
-| lcsc | LCSC_API_KEY | Complete | Needs key |
-| ebay_uk | EBAY_APP_ID | Complete (has bug) | Needs OAuth |
-
-## Entity graph
-
-| Table | Count | What |
-|-------|-------|------|
-| organisation | 856 | Companies, traders, buyers |
-| robot_model | 123 | Robot models from seeds + vendor repos |
-| robot_manufacturer | 26 | Manufacturer profiles |
-| component | 32 | Tracked components (servos, controllers, etc.) |
-| product_relation | 29 | Robot→component relationships |
-| component_manufacturer | 23 | Component→manufacturer links |
-
-### Query the entity graph
-
-```bash
-powrobots robots          # Summary
-powrobots models          # All 123 models
-powrobots components      # All 32 components
-powrobots organisations   # First 50 organisations
+```
+Collectors → Raw storage → Source records → Entity graph
+     ↓                                        ↓
+collector_run                        powops monitors via collector_db
+     ↓                                            ↓
+powops health                      MCP / Dashboard / CLI
 ```
 
-## How to add a new collector
+### Key files
 
-1. Create `powrobots/collectors/<name>.py`
-2. Subclass `BaseCollector`
-3. Set `SOURCE_ID`, `DATASET`, `PARSER_ID`
-4. Implement `fetch()` → return bytes or None
-5. Implement `parse(raw_content, raw_hash, result)` → call `insert_source_record()` + `upsert_*()`
-6. Add to `COLLECTORS` dict in `cli.py`
-7. Add to powops `sources.yaml` under `powrobots` garden with `health.check: collector_db`
-8. Run `python3 -m powrobots.cli seed`
-9. Run `python3 -m powrobots.cli collect <source_id>`
-10. powops sees it immediately
-
-## How to add a new API-key source
-
-1. Register for API key
-2. Set env var: `export COMPANIES_HOUSE_API_KEY=xxx`
-3. Implement `fetch()` in the collector
-4. Test: `python3 -m powrobots.cli collect <source_id>`
-5. powops reports `no_key` until env var is set, then `ok`/`error`
-
-## Key files
-
-| File | Purpose |
-|------|---------|
-| `powrobots/cli.py` | CLI entry point |
-| `powrobots/collectors/base.py` | Base collector + retry + raw storage |
+| File | What it does |
+|------|-------------|
+| `powrobots/cli.py` | CLI entry point (15 collectors, 10 commands) |
+| `powrobots/collectors/base.py` | Base collector with retry + raw storage |
 | `powrobots/collectors/*.py` | 15 source collectors |
-| `powrobots/shared/db.py` | SQLite schema + seed data |
-| `powrobots/shared/persist.py` | Storage + entity graph + health |
-| `powrobots/seeds/*.yml` | Seed data (manufacturers, components, stocks) |
+| `powrobots/resolve.py` | BOM resolution + substitution engine |
+| `powrobots/mcp.py` | MCP server for Muse/ChatGPT integration |
+| `powrobots/shared/db.py` | Schema + seeds + source_health computation |
+| `powrobots/shared/persist.py` | Storage + entity graph operations |
+| `powrobots/core/enums.py` | Domain enums (RobotType, ComponentCategory) |
+| `enclosures/generate.py` | Parametric STL enclosure generator |
+| `firmware/plant-sprite/main.py` | ESP32 firmware for plant monitoring |
+| `firmware/desk-goblin/main.py` | ESP32 firmware for desk companion |
+| `scripts/seed_loader.py` | Entity graph seeder |
 | `tests/test_core.py` | 42 tests |
-| `docs/BUILD_NOTES.md` | Complete build documentation |
-| `docs/threads.md` | Open threads and decisions |
-| `docs/blockers.md` | Tracked blockers |
-| `HANDOVER.md` | What exists and what to do next |
+
+---
+
+## How to add a new engine
+
+1. Define engine name and capability
+2. List required components in `powrobots/seeds/component_basket.yml`
+3. Add components to database via `seed_loader.py`
+4. Create enclosure template in `enclosures/generate.py`
+5. Create firmware in `firmware/<engine-name>/main.py`
+6. Register as product in `product` table
+7. Add to MCP tools in `powrobots/mcp.py`
+
+### Engine criteria
+
+An engine must:
+- Be buildable from 3-5 off-the-shelf components
+- Cost under £20 in parts
+- Have a clear capability (sense, remember, act, talk, see)
+- Be compatible with ESP32-class controllers
+- Be producible at scale (JLCPCB + JLC3DP)
+
+---
+
+## How to add a new product
+
+1. Choose engine combination (e.g. SENSE + ACT)
+2. Create enclosure design (Blender/OpenSCAD)
+3. Run `resolve_bom()` to verify parts exist
+4. Add to `product` table with pricing
+5. Add character variants to `product_variant` table
+6. Create Etsy listing template
+7. Test manufacturing pipeline (JLCPCB → JLC3DP → assembly)
+
+### Product criteria
+
+A product must:
+- Use 1-3 engines
+- Have a unique enclosure design
+- Be personalisable (name, colour, character)
+- Have >40% margin at retail
+- Be manufacturable (JLCPCB + JLC3DP + assembly)
+
+---
+
+## How to add a new supplier
+
+1. Add to `source_rights` table (status: open/approved)
+2. Add to `source_registry` table (authority, cadence, tier)
+3. Add collector in `powrobots/collectors/<name>.py`
+4. Add to `COLLECTORS` dict in `cli.py`
+5. Run `powrobots seed` (idempotent)
+6. Run `powrobots collect <source>`
+7. powops sees it via collector_db
+
+---
+
+## How to add a new component
+
+1. Add to `powrobots/seeds/component_basket.yml`
+2. Run `scripts/seed_loader.py` to populate
+3. Add pricing observations to `component_market_observation`
+4. Add `REQUIRES` relations from robots that use it
+5. Add `COMPATIBLE_WITH` relations for alternatives
+
+---
+
+## The MCP (what AI agents see)
+
+### Tools
+
+| Tool | What it answers |
+|------|----------------|
+| `pow_resolve_bom(model_id)` | "What parts does this robot need and what do they cost?" |
+| `pow_find_substitutes(component_id)` | "What else fits this slot?" |
+| `pow_optimize_bom(model_id, strategy)` | "What's the cheapest/fastest way to get these parts?" |
+| `pow_quote_build(model_id)` | "What's the full assembly cost?" |
+| `pow_list_components(query)` | "Show me all servos / sensors / ESP32 boards" |
+| `pow_robot_info(model_id)` | "Tell me about this robot model" |
+| `pow_list_robots(robot_type)` | "Show me all robot vacuums" |
+| `pow_list_products(product_line)` | "Show me all Glimlings" |
+
+### Integration with Muse
+
+```
+Muse → Blender MCP → creates 3D design
+Muse → POW MCP → resolves BOM
+Muse → customer → approves quote
+Muse → manufacturing → places order
+```
+
+---
+
+## Data flow
+
+```
+1. Collectors fetch data from public sources
+2. Raw blobs stored in warehouse/raw/
+3. Source records created in source_record table
+4. Entity graph populated (organisations, models, components)
+5. Powops monitors via collector_db
+6. MCP exposes graph to AI agents
+7. resolve_bom() returns parts + prices
+8. Manufacturing pipeline assembles product
+9. Product ships to customer
+```
+
+---
+
+## What's in the database
+
+| Table | Rows | What |
+|-------|------|------|
+| organisation | 856 | UK businesses, traders, buyers |
+| robot_manufacturer | 44 | Robot manufacturers |
+| robot_model | 221 | Robot models (industrial + consumer) |
+| component | 143 | Electronic + mechanical parts |
+| product_relation | 234 | REQUIRES + COMPATIBLE_WITH |
+| distributor | 16 | Suppliers (UK, China, US) |
+| component_market_observation | 129 | Prices from multiple suppliers |
+| collector_run | 24 | Health check history |
+| source_health | 15 | Current health status |
+| kit | 10 | Curated product bundles |
+| product | 11 | Glimlings product catalogue |
+| product_variant | 19 | Character + colour options |
+
+---
 
 ## Blockers (see docs/blockers.md)
 
-1. Mouser/Farnell/LCSC need API keys
+1. Mouser/Farnell/LCSC need API keys for structured pricing
 2. eBay needs OAuth setup
 3. BARA/RBTX/apprenticeships are JS-rendered
-4. HMRC trade stats, ONS PPI need parsers
-5. powops can't query entity graph (by design)
+4. powops can't query entity graph directly (by design)
+5. 5 API-key collectors have fetch() stubs
+
+---
 
 ## Design principles
 
-1. **Layer 1 only** — no economics, no modelling
-2. **Raw preservation** — content-addressed, gzip, append-only
-3. **Entity graph** — manufacturers, models, components, relations
-4. **Rights-gated** — source_rights table controls collection
-5. **POWOps integration** — collector_run + source_health tables
-6. **Boring** — simple file reads, no ML, no dashboards-within-dashboards
+1. **Modular** — engines are independent, products compose them
+2. **Extensible** — new engines, products, and suppliers are easy to add
+3. **Open** — MCP exposes everything to any AI agent
+4. **Personalised** — every product has name, colour, character
+5. **Manufacturable** — every design must be buildable (JLCPCB + JLC3DP)
+6. **Tested** — every component has verified compatibility
