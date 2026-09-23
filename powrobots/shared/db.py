@@ -116,7 +116,12 @@ CREATE TABLE IF NOT EXISTS collector_run (
     source_records_updated INTEGER DEFAULT 0,
     source_records_invalid INTEGER DEFAULT 0,
     error TEXT,
-    duration_seconds REAL
+    duration_seconds REAL,
+    collector_sha TEXT,
+    cursor_before TEXT,
+    cursor_after TEXT,
+    validation_passed INTEGER DEFAULT 1,
+    schema_version TEXT
 );
 
 -- Collector health

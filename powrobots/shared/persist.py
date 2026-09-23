@@ -105,17 +105,117 @@ def insert_source_record(source_id: str, dataset: str, native_id: str,
 def log_run(source_id: str, status: str, raw_fetched: int = 0, raw_new: int = 0,
             records_new: int = 0, records_unchanged: int = 0, records_changed: int = 0,
             records_invalid: int = 0, error: str = None,
-            started_at: str = '', finished_at: str = ''):
+            started_at: str = '', finished_at: str = '',
+            collector_sha: str = '', cursor_before: str = '', cursor_after: str = '',
+            validation_passed: int = 1, schema_version: str = ''):
     conn = get_db()
+    duration = None
+    if started_at and finished_at:
+        try:
+            from datetime import datetime as dt
+            s = dt.fromisoformat(started_at.replace('Z', '+00:00'))
+            f = dt.fromisoformat(finished_at.replace('Z', '+00:00'))
+            duration = (f - s).total_seconds()
+        except (ValueError, TypeError):
+            pass
+
     conn.execute(
         "INSERT INTO collector_run "
         "(source_id, started_at, finished_at, status, raw_fetched, raw_new, "
-        "source_records_new, source_records_updated, source_records_invalid, error) "
-        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        "source_records_new, source_records_updated, source_records_invalid, "
+        "error, duration_seconds, collector_sha, cursor_before, cursor_after, "
+        "validation_passed, schema_version) "
+        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
         (source_id, started_at or datetime.now(timezone.utc).isoformat(),
          finished_at or datetime.now(timezone.utc).isoformat(),
-         status, raw_fetched, raw_new, records_new, records_changed, records_invalid, error)
+         status, raw_fetched, raw_new, records_new, records_changed, records_invalid,
+         error, duration, collector_sha or None, cursor_before or None,
+         cursor_after or None, validation_passed, schema_version or None)
     )
+    conn.commit()
+    run_id = conn.execute("SELECT last_insert_rowid()").fetchone()[0]
+    conn.close()
+
+    # Update source_health after each run
+    try:
+        compute_source_health(source_id)
+    except Exception:
+        pass
+
+    return run_id
+
+
+def compute_source_health(source_id: str):
+    """Compute and write source_health from latest collector_run.
+
+    Called automatically after each log_run().
+    """
+    conn = get_db()
+    row = conn.execute(
+        "SELECT started_at, finished_at, status, error, "
+        "source_records_new, source_records_updated, source_records_invalid "
+        "FROM collector_run WHERE source_id = ? ORDER BY run_id DESC LIMIT 1",
+        (source_id,)
+    ).fetchone()
+
+    if not row:
+        conn.close()
+        return
+
+    started_at, finished_at, status, error, new, updated, invalid = row
+
+    # Determine health status
+    if status == 'ok':
+        health_status = 'healthy'
+        health_reason = None
+    elif status == 'error':
+        health_status = 'failed'
+        health_reason = error
+    elif status == 'blocked':
+        health_status = 'blocked'
+        health_reason = error or 'rights_blocked'
+    else:
+        health_status = 'unknown'
+        health_reason = status
+
+    # Check if health record exists
+    existing = conn.execute(
+        "SELECT health_id FROM source_health WHERE source_id = ?",
+        (source_id,)
+    ).fetchone()
+
+    now = datetime.now(timezone.utc).isoformat()
+
+    if existing:
+        # Update
+        is_success = status == 'ok'
+        conn.execute(
+            "UPDATE source_health SET "
+            "last_attempt = ?, last_success = CASE WHEN ? THEN ? ELSE last_success END, "
+            "last_error = CASE WHEN ? THEN ? ELSE last_error END, "
+            "records_new = ?, records_changed = ?, records_invalid = ?, "
+            "status = ?, status_reason = ?, computed_at = ? "
+            "WHERE source_id = ?",
+            (started_at, is_success, finished_at,
+             not is_success, error,
+             new or 0, updated or 0, invalid or 0,
+             health_status, health_reason, now, source_id)
+        )
+    else:
+        # Insert
+        conn.execute(
+            "INSERT INTO source_health "
+            "(source_id, last_attempt, last_success, last_error, "
+            "records_new, records_changed, records_invalid, "
+            "status, status_reason, computed_at) "
+            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            (source_id, started_at,
+             finished_at if status == 'ok' else None,
+             error if status != 'ok' else None,
+             new or 0, updated or 0, invalid or 0,
+             health_status, health_reason, now)
+        )
+
     conn.commit()
     conn.close()
 
