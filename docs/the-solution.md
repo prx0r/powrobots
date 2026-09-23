@@ -1,194 +1,190 @@
-# The Real Solution: Make Assembly Trivial
+# The Solution: Makerfabs + Standard Electronics + Custom Enclosure
 
-## The Problem
+## The Answer
 
-Assembly is expensive because it's complex:
-- Wire PCB to sensors
-- Wire PCB to motors
-- Wire PCB to display
-- Mount everything in enclosure
-- Test all connections
-- Package
-
-**That's why it costs $80-150.**
-
-## The Solution
-
-**Design the product so assembly is TRIVIAL:**
-- Custom PCB with ALL components on it
-- Snap-fit enclosure (no screws, no wiring)
-- PCB snaps into enclosure
-- Done.
+**YES** — Makerfabs does exactly what you need:
+- Standard electronics module (same for all Glimlings)
+- Custom enclosure (different for each character)
+- Assembly, testing, packaging, shipping
+- 1-piece minimum
 
 ---
 
-## The New Pipeline
+## The Production Flow
 
 ```
-1. DESIGN PCB (Fiverr $30-50 or DIY EasyEDA)
-2. ORDER PCB (JLCPCB: $10-15 for 2 assembled boards)
-3. ORDER ENCLOSURE (JLC3DP: $1-5)
-4. ASSEMBLE: Snap PCB into enclosure (5 seconds)
-5. SHIP: Royal Mail £3.50
-```
-
-**TOTAL: £15-20 per unit**
-
----
-
-## How It Works
-
-### Step 1: Design the PCB
-
-**Option A: Fiverr ($30-50)**
-- Hire ESP32 PCB designer
-- They provide: schematic, Gerber, BOM, pick-and-place
-- 2-7 day delivery
-
-**Option B: DIY (Free)**
-- Use EasyEDA (free, integrates with JLCPCB)
-- Or KiCad (free, open source)
-- Design custom PCB with:
-  - ESP32-S3 module
-  - OLED display
-  - Buzzer
-  - LED
-  - USB-C connector
-  - Sensor connectors
-
-### Step 2: Order Assembled PCB
-
-**JLCPCB:**
-- Upload Gerber + BOM + pick-and-place
-- $8 setup + $0.0016 per solder joint
-- 2 boards for ~$10-15
-- 2-4 day delivery
-
-### Step 3: Order Enclosure
-
-**JLC3DP:**
-- Design snap-fit enclosure (or use parametric generator)
-- Upload STL
-- SLA resin from $0.30
-- MJF nylon from $1
-- 2-4 day delivery
-
-### Step 4: Assemble (5 Seconds)
-
-```
-1. Take PCB from JLCPCB box
-2. Take enclosure from JLC3DP box
-3. Snap PCB into enclosure
-4. Done.
-```
-
-**No wiring. No soldering. No testing. Just snap.**
-
-### Step 5: Ship
-
-- Royal Mail: £3.50
-- Or Evri: £2.50
-
----
-
-## The Key: Snap-Fit Design
-
-### Design Rules
-
-1. **No screws** - PCB snaps into enclosure
-2. **No wiring** - All components on PCB
-3. **No soldering** - JLCPCB does it all
-4. **No testing** - Components are pre-tested
-5. **One motion** - Push PCB in, done
-
-### Example: Desk Agent
-
-```
-Custom PCB:
-  - ESP32-S3 module (soldered)
-  - OLED display (soldered)
-  - Buzzer (soldered)
-  - LED (soldered)
-  - USB-C connector (soldered)
-
-Enclosure:
-  - Bottom half: snap-fit rails
-  - Top half: snap-fit lid
-  - Cutout for OLED screen
-  - Cutout for USB-C port
-  - Cutout for buzzer sound
-
-Assembly:
-  1. Slide PCB into rails
-  2. Snap lid on
-  3. Done.
+Customer orders
+    ↓
+POW generates:
+  - Enclosure STL/STEP (unique per character)
+  - Standard electronics SKU (same for all)
+  - Firmware config (personality, name)
+  - Assembly instructions
+  - Test specification
+    ↓
+Makerfabs:
+  1. Takes standard electronics module from stock
+  2. Fits personalised enclosure
+  3. Programs firmware
+  4. Runs functional test
+  5. Packages under POW branding
+  6. Ships directly to customer
+    ↓
+Customer receives finished Glimling
 ```
 
 ---
 
-## Cost Breakdown (1 Unit)
+## The Key Insight: Standard Electronics
 
-| Item | Cost |
+**Don't make a different circuit board for every customer.**
+
+Make ONE standard electronics module. Customise only the enclosure.
+
+### Example: Desk Goblin
+
+| Component | Standard? | Custom? |
+|-----------|-----------|---------|
+| ESP32-S3 board | ✅ Same for all | |
+| OLED screen | ✅ Same for all | |
+| Buzzer | ✅ Same for all | |
+| LED | ✅ Same for all | |
+| USB-C connector | ✅ Same for all | |
+| Mounting chassis | ✅ Same for all | |
+| **Outer shell** | | ✅ Different per character |
+| **Nameplate** | | ✅ Different per character |
+| **Colour** | | ✅ Different per character |
+| **Firmware config** | | ✅ Different per character |
+
+**One electronics module, infinite characters.**
+
+---
+
+## Three Manufacturing Models
+
+| Model | Advantage | Constraint |
+|-------|-----------|------------|
+| Fully custom per order | No inventory | Repeated setup costs |
+| **Standard electronics + printed shell** | **Unique appearance, repeatable assembly** | **Requires small stock of electronics** |
+| Finished stock + nameplate | Fastest fulfilment | Less customisation |
+
+**Recommended: Standard electronics + printed-to-order shell**
+
+---
+
+## Makerfabs Services
+
+| Service | What They Do |
+|---------|--------------|
+| PCB assembly | Assemble electronics module |
+| 3D printing | Print custom enclosure |
+| Mechanical assembly | Fit PCB into enclosure |
+| Firmware programming | Flash configuration |
+| Testing | Functional test |
+| Packaging | POW branding |
+| Warehousing | Hold stock of electronics |
+| Dropshipping | Ship directly to customer |
+
+**Source:** https://www.makerfabs.com/service
+**Dropshipping:** https://www.makerfabs.com/drop-shipping-service.html
+
+---
+
+## What to Ask Makerfabs
+
+1. **Accepts different STL/STEP per order?** (including 1-piece orders)
+2. **Can print enclosure + assemble electronics?** (end-to-end)
+3. **Can flash firmware + run functional test?** (quality control)
+4. **Can photograph + package + ship direct to UK?** (fulfilment)
+5. **Separate prices for:**
+   - Prototype (1 unit)
+   - Electronics stock (10-20 modules)
+   - Per-order printing
+   - Final assembly
+   - Testing
+   - Storage
+   - Shipping
+6. **Can handle defects + replacements?** (returns)
+
+---
+
+## The Milestone
+
+**One actual Glimling manufactured, tested, and delivered to a UK address.**
+
+Once that works, POW can turn it into a repeatable design-to-fulfilment engine.
+
+---
+
+## heypcb.ai
+
+**Useful for:** Finding existing open-source hardware designs to reference
+**Not useful for:** Manufacturing or assembly
+
+It's like GitHub for PCBs — 8,898 boards, including ESP32 projects, robotics, IoT devices. Good for inspiration, not production.
+
+---
+
+## Can the Customer Do Assembly?
+
+**YES** — this is actually a great idea for certain products:
+
+### Option A: Customer Assembles (DIY Kit)
+
+| Pros | Cons |
 |------|------|
-| PCB design (Fiverr) | $30-50 (one-time) |
-| PCB fabrication + assembly (JLCPCB) | $10-15 |
-| Enclosure (JLC3DP) | $1-5 |
-| Assembly (your time) | 5 seconds |
-| Shipping (Royal Mail) | £3.50 |
-| **Total per unit** | **£15-20** |
+| No assembly cost | Customer needs basic skills |
+| Lower price point | Support requests |
+| Fun/educational | Not everyone wants to build |
 
-**At 10 units, PCB design cost amortises to $3-5 per unit.**
+### Option B: Factory Assembles (Finished Product)
 
----
+| Pros | Cons |
+|------|------|
+| No customer effort | Higher cost |
+| Professional quality | Factory dependency |
+| Ready to use out of box | Less personal connection |
 
-## UK Assemblers (If You Want Help)
+### Recommendation
 
-| Company | Location | Services |
-|---------|----------|----------|
-| PHS Electronic Solutions | UK | PCB assembly, box build |
-| Prototype Electronics | Dorset | PCB assembly, box build |
-| Magus Electronics | UK | PCB assembly, product assembly |
-| Anode CKE | Leicester | PCB assembly, box build |
-| Phase One Electronics | Portsmouth | PCB assembly, prototyping |
-| Kasdon Electronics | UK | PCB assembly, box build |
-| MPE Electronics | West Sussex | PCB assembly, turnkey |
-| Skilcom | Newbury | PCB assembly, box build |
+**Offer both:**
+- **DIY Kit:** £25-35 (customer assembles)
+- **Finished Product:** £49-69 (factory assembles)
 
-**All do small batches. Contact for quotes.**
+This gives customers choice and captures both markets.
 
 ---
 
-## The Math
+## The Real Solution
 
-| Approach | 1-Unit Cost | Assembly Time |
-|----------|-------------|---------------|
-| Old way (wiring + manual) | £189-299 | 30-60 min |
-| PCBWay Box Build | $80-150 | Factory |
-| **New way (snap-fit)** | **£15-20** | **5 seconds** |
+```
+1. Design standard electronics module (1 board, fits all characters)
+2. Design snap-fit enclosure (different per character)
+3. Stock 10-20 electronics modules at Makerfabs
+4. Customer orders → POW generates enclosure STL
+5. Makerfabs prints enclosure + assembles + tests + ships
+6. Customer receives finished Glimling
+```
 
-**The trick: design the product so assembly is trivial.**
+**Cost estimate (10 units):**
+- Electronics module: $15-25 each
+- Enclosure printing: $5-10 each
+- Assembly + test: $10-15 each
+- Shipping: $10-15 each
+- **Total: $40-65 per unit**
+
+**Retail price: £49-69**
+**Margin: 30-50%**
 
 ---
 
-## What You Need to Do
+## Next Steps
 
-1. **Design a custom PCB** for Desk Agent
-   - Use EasyEDA (free) or hire Fiverr ($30-50)
-   - Put ESP32-S3 + OLED + buzzer + LED on one board
+1. **Contact Makerfabs** — get quote for 1 prototype + 10 electronics modules
+2. **Design standard electronics module** — ESP32-S3 + OLED + buzzer + LED
+3. **Design snap-fit enclosure** — parametric, different per character
+4. **Submit first order** — 1 prototype Desk Goblin
+5. **Test delivery to UK** — verify process works
+6. **Scale** — if it works, repeat for all engines
 
-2. **Design a snap-fit enclosure**
-   - Use parametric generator (GitHub: hadencain/pcb-enclosure-generator)
-   - Or design in FreeCAD/Blender
-
-3. **Order from JLCPCB + JLC3DP**
-   - Assembled PCB: $10-15
-   - Enclosure: $1-5
-
-4. **Snap PCB into enclosure**
-   - 5 seconds
-   - That's your assembly
-
-5. **Ship via Royal Mail**
-   - £3.50
-
-**Total: £15-20 per unit. No factory needed.**
+**The milestone is one real Glimling delivered to a UK address.**
