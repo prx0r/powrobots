@@ -41,6 +41,9 @@ What exists, what works, what doesn't, and what to do next.
 | component | 32 | Seed basket |
 | product_relation | 29 | Seed loader |
 | component_manufacturer | 23 | Seed loader |
+| safety_notice | 50 | OPSS safety alerts |
+| procurement_notice | 20 | Contracts Finder notices |
+| grant_project | 10 | UKRI research projects |
 
 ### Infrastructure
 
@@ -50,6 +53,9 @@ What exists, what works, what doesn't, and what to do next.
 - Source registry: 15 seeded
 - Collector run history: 24 rows
 - Source health: 15 rows (all sources)
+- Safety notices: 50 rows
+- Procurement notices: 20 rows
+- Grant projects: 10 rows
 - Systemd: 6h timer
 - CI: GitHub Actions (pytest + ruff)
 - powops: fully wired, all 15 sources visible
