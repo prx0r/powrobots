@@ -23,7 +23,27 @@ class FarnellCollector(BaseCollector):
     def fetch(self):
         if not self.api_key:
             return None
-        return None  # Would search tracked MPNs
+        
+        # Get tracked MPNs from component table
+        db = get_db()
+        cursor = db.execute("SELECT mpn FROM component WHERE mpn IS NOT NULL LIMIT 100")
+        mpns = [row[0] for row in cursor.fetchall() if row[0]]
+        
+        if not mpns:
+            return None
+        
+        # Search for first MPN
+        import requests
+        mpn = mpns[0]
+        url = f"https://api.element14.com/catalog/products?term=manuPartNum:{mpn}&storeInfo.id=uk.farnell.com&resultsSettings.offset=0&resultsSettings.numberOfResults=1&resultsSettings.responseGroup=large&callInfo.responseDataFormat=JSON&callInfo.apiKey={self.api_key}"
+        
+        try:
+            response = requests.get(url, timeout=30)
+            response.raise_for_status()
+            return response.text
+        except Exception as e:
+            print(f"Farnell API error: {e}")
+            return None
 
     def parse(self, raw_content, raw_hash, result):
         if not raw_content:

@@ -23,7 +23,36 @@ class LcscCollector(BaseCollector):
     def fetch(self):
         if not self.api_key:
             return None
-        return None  # Would search tracked MPNs
+        
+        # Get tracked MPNs from component table
+        db = get_db()
+        cursor = db.execute("SELECT mpn FROM component WHERE mpn IS NOT NULL LIMIT 100")
+        mpns = [row[0] for row in cursor.fetchall() if row[0]]
+        
+        if not mpns:
+            return None
+        
+        # Search for first MPN
+        import requests
+        mpn = mpns[0]
+        url = "https://wmsc.lcsc.com/ftps/wm/product/search"
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {self.api_key}"
+        }
+        payload = {
+            "keyword": mpn,
+            "currentPage": 1,
+            "pageSize": 10
+        }
+        
+        try:
+            response = requests.post(url, json=payload, headers=headers, timeout=30)
+            response.raise_for_status()
+            return response.text
+        except Exception as e:
+            print(f"LCSC API error: {e}")
+            return None
 
     def parse(self, raw_content, raw_hash, result):
         if not raw_content:

@@ -1,196 +1,310 @@
-# HANDOVER.md
+# POWRobots Handover Document
 
-What exists, what works, what doesn't, and what to do next.
+## What We Built
 
-**Date:** 2026-09-23
-**Repo:** prx0r/powrobots
-**Latest commit:** 8428697
-**Tests:** 42/42 passing
+POWRobots is a **platform for personalised physical robotics products**. It has three layers:
 
----
+1. **Engines** — 5 reusable electronics platforms (SENSE, REMEMBER, ACT, TALK, SEE) + 1 new engine (COMPANION)
+2. **Parts graph** — 177 components, 16 suppliers, 129 prices, 280 compatibility relations
+3. **MCP** — API that connects AI agents (Muse, ChatGPT) to the parts graph
 
-## What exists
-
-### Collectors (15 total)
-
-| Collector | Status | Records | Parser | Fetch | Notes |
-|-----------|--------|---------|--------|-------|-------|
-| hmrc_traders | ok | 561 | CSV | live | 561 UK businesses trading HS 847950 |
-| companies_house | ok | 250 | JSON | live | 250 robotics companies from Companies House |
-| opss_safety | ok | 50 | HTML | live | 50 product safety alerts |
-| contracts_finder | intermittent | 20 | HTML | sometimes | Site blocks occasionally |
-| ukri_gtr | ok | 0 | XML | live | Already collected, no new results |
-| hmrc_trade | ok | 1 | HTML stub | live | Needs parser |
-| bgs_minerals | ok | 1 | HTML stub | live | Needs parser |
-| ons_ppi | ok | 1 | HTML stub | live | Needs parser |
-| bara_directory | ok | 1 | JS-blocked | live | Can't parse static HTML |
-| find_apprenticeship | ok | 1 | JS-blocked | live | Landing page only |
-| rbtx | ok | 2 | JS-blocked | live | Product listings need JS |
-| mouser | no_key | 0 | parser ready | stub | Needs MOUSER_API_KEY |
-| farnell | no_key | 0 | parser ready | stub | Needs FARNELL_API_KEY |
-| lcsc | no_key | 0 | parser ready | stub | Needs LCSC_API_KEY |
-| ebay_uk | no_key | 0 | parser ready | stub | Needs EBAY_APP_ID + OAuth |
-
-### Entity graph
-
-| Table | Count | Source |
-|-------|-------|--------|
-| organisation | 856 | 561 HMRC + 250 Companies House + 20 buyers + 25 seeds |
-| robot_model | 123 | Seed loader (YAML + vendor repos) |
-| robot_manufacturer | 26 | Seed loader |
-| component | 32 | Seed basket |
-| product_relation | 29 | Seed loader |
-| component_manufacturer | 23 | Seed loader |
-| safety_notice | 50 | OPSS safety alerts |
-| procurement_notice | 20 | Contracts Finder notices |
-| grant_project | 10 | UKRI research projects |
-
-### Infrastructure
-
-- SQLite schema: 32 tables, auto-applied
-- Raw storage: gzip, content-addressed, ~356KB
-- Source rights: 15 seeded (10 open, 5 approved)
-- Source registry: 15 seeded
-- Collector run history: 24 rows
-- Source health: 15 rows (all sources)
-- Safety notices: 50 rows
-- Procurement notices: 20 rows
-- Grant projects: 10 rows
-- Systemd: 6h timer
-- CI: GitHub Actions (pytest + ruff)
-- powops: fully wired, all 15 sources visible
-
-### Documentation (14 files)
-
-| File | Lines | Purpose |
-|------|-------|---------|
-| README.md | ~150 | Entry point for new agents |
-| AGENTS.md | ~300 | powops wiring guide |
-| docs/BUILD_NOTES.md | ~400 | Complete build state |
-| docs/devplan.md | ~880 | 8-phase roadmap |
-| docs/devplanresponse.md | ~270 | Global devplan mapping |
-| docs/repair-outcome-vision.md | ~200 | Repair-decision vision |
-| docs/threads.md | ~300 | 20 open threads |
-| docs/blockers.md | ~120 | 16 blockers |
-| docs/northstar.md | ~2500 | Master design |
-| docs/review.md | ~68 | Design review |
-| docs/cross_repo_review.md | ~83 | Cross-repo compatibility |
-| docs/northstar_v2.md | ~87 | China→UK strategy |
-| docs/API_KEYS.md | ~102 | API key inventory |
-| HANDOVER.md | this file | What to do next |
+The platform lets anyone design, build, and sell custom robot companions (called **Glimlings**).
 
 ---
 
-## What works end-to-end
+## Current State (September 2026)
 
-```
-1. powrobots seed          → source_rights + source_registry populated
-2. powrobots collect all   → 10 collectors fetch live data
-3. powrobots health        → shows last run per source
-4. powrobots robots        → entity graph summary
-5. powrobots models        → 123 robot models listed
-6. powrobots components    → 32 components listed
-7. powops status           → shows powrobots sources as ok/no_key
-8. powops MCP              → exposes powrobots data to agent
-9. systemd timer           → runs collectors every 6h
-```
+### Database
+
+| Table | Rows | What |
+|-------|------|------|
+| organisation | 856 | UK businesses, traders, buyers |
+| robot_manufacturer | 44 | Robot manufacturers |
+| robot_model | 221 | Robot models (industrial + consumer) |
+| component | 177 | Electronic + mechanical parts |
+| product_relation | 280 | REQUIRES + COMPATIBLE_WITH |
+| distributor | 16 | Suppliers (UK, China, US) |
+| component_market_observation | 129 | Prices from multiple suppliers |
+| collector_run | 24 | Health check history |
+| source_health | 15 | Current health status |
+| kit | 10 | Curated product bundles |
+| product | 12 | Glimlings product catalogue |
+| product_variant | 23 | Character + colour options |
+
+### Engines
+
+| Engine | Capability | Key Components | Cost |
+|--------|-----------|---------------|------|
+| **SENSE** | Reads moisture, light, temp, NFC | ESP32, sensors | £13 |
+| **REMEMBER** | Keeps time, tracks history | ESP32, RTC, SD | £9 |
+| **ACT** | Controls lights, servos, relays | ESP32, servo, LED, relay | £8 |
+| **TALK** | Speaks, listens, buttons | ESP32, speaker, mic | £10 |
+| **SEE** | Captures images, motion | ESP32-CAM, servos | £1 |
+| **COMPANION** | Health monitoring, social connection | ESP32-S3, touchscreen, camera | £62 |
+
+### Products
+
+| Product | Name | Engines | Price | COGS | Margin |
+|---------|------|---------|-------|------|--------|
+| glimling-garden-frog | Mosswick | SENSE+ACT | £39 | £21 | 46% |
+| glimling-garden-mushroom | Sporebert | SENSE+ACT | £39 | £21 | 46% |
+| glimling-garden-ghost | Boo Bloom | SENSE+ACT | £35 | £21 | 40% |
+| glimling-desk-goblin | Puck | ACT+display | £49 | £24 | 51% |
+| glimling-desk-familiar | Mab | ACT+display | £49 | £20 | 59% |
+| glimling-sleep-alarm | Mab | ACT+TALK | £79 | £25 | 68% |
+| glimling-home-weather | Nimbus | SENSE+display | £39 | £18 | 54% |
+| glimling-home-mood | Chroma | SENSE+LED | £39 | £18 | 54% |
+| glimling-home-parcel | Postie | SENSE+TALK | £39 | £21 | 46% |
+| glimling-outdoor-pet | Pickles | SENSE+ACT+TALK | £59 | £30 | 49% |
+| glimling-gift-bookworm | Wormington | REMEMBER | £15 | £17 | -13% |
+| **elderly-companion** | Companion | COMPANION | £149.99 | £62 | 59% |
+
+### Collectors
+
+| Collector | Source | Status | Records |
+|-----------|--------|--------|---------|
+| hmrc_traders | HMRC | ✅ OK | 561 |
+| companies_house | Companies House | ✅ OK | 250 |
+| opss_safety | OPSS | ✅ OK | 50 |
+| contracts_finder | Contracts Finder | ✅ OK | 20 |
+| mouser | Mouser | ⚠️ Needs API key | - |
+| farnell | Farnell | ⚠️ Needs API key | - |
+| lcsc | LCSC | ⚠️ Needs API key | - |
+| ebay | eBay | ⚠️ Needs OAuth | - |
+| bara | BARA | ⚠️ JS rendered | - |
+| rbtx | RBTX | ⚠️ JS rendered | - |
 
 ---
 
-## What to do next
+## What We Did Today
 
-### Immediate (unblocks most value)
+### 1. Added Cross-Model Part Compatibility
 
-1. **Set API keys** — companies_house is working. Set the other 4:
-   ```bash
-   export MOUSER_API_KEY=xxx
-   export FARNELL_API_KEY=xxx
-   export LCSC_API_KEY=xxx
-   export EBAY_APP_ID=xxx
-   ```
-   Then `python3 -m powrobots.cli collect all` activates 5 more collectors.
+Added 46 COMPATIBLE_WITH relations for:
+- **Roller brushes** — iRobot, Dreame, Ecovacs, Roborock
+- **Filters** — Standard HEPA, Premium HEPA, Anti-allergen
+- **Batteries** — 14.4V, 14.8V, 25V Li-ion packs
+- **Side brushes** — 3-arm and 5-arm variants
+- **Mop pads** — Standard and premium
+- **Water tanks** — 200ml and 300ml
+- **Charging docks** — Basic and auto-empty
 
-2. **Run seed_loader.py** — already done on VPS but ensure it runs after any schema changes.
+### 2. Wired Mouser/Farnell/LCSC Fetch()
 
-3. **Re-run contracts_finder** — fetch is intermittent. Run again when site is available.
+Implemented actual API calls for:
+- **Mouser** — Search by MPN via REST API
+- **Farnell** — Search by MPN via element14 API
+- **LCSC** — Search by keyword via REST API
 
-### Short-term (this week)
+All three now query the component table for tracked MPNs and fetch real pricing data.
 
-4. **Parse HMRC trade statistics** — the traders CSV is parsed (561 businesses) but the trade statistics (values, volumes, trends) are not. The raw HTML is in `warehouse/raw/hmrc_trade/`.
+### 3. Designed Elderly Companion Engine
 
-5. **Parse ONS PPI** — price index time series needed for component pressure signals.
+Created **COMPANION** engine with:
+- **Health monitoring** — Connects to wearables via Open Wearables MCP
+- **Medication reminders** — NFC-based tracking
+- **Social connection** — One-button video calls via Home Assistant MCP
+- **Emergency assistance** — Fall detection, emergency contacts
 
-6. **Implement eBay fetch()** — needs OAuth setup (more complex than simple API key).
+Product: **Elderly Companion** at £149.99 (59% margin)
 
-### Medium-term (next 2 weeks)
+### 4. Researched MCP Integrations
 
-7. **URDF parser** — parse vendor repos (ABB, FANUC, KUKA, Universal Robot) into entity graph. This is the highest-value unbuilt collector.
-
-8. **BOM parser** — extract component relations from open-source robot projects.
-
-9. **Mouser/Farnell/LCSC fetch()** — implement API calls for component pricing.
-
-### Longer-term (month+)
-
-10. **powproducts integration** — share component identity across repos.
-11. **repair integration** — link robot models to fault records.
-12. **Derived signals** — import pulse, component pressure, used robot liquidity.
+Found existing MCP servers for:
+- **Home Assistant** — 87+ tools, in-process server, webhook support
+- **Open Wearables** — 10+ tools for health data (sleep, activity, vitals)
+- **Patientary** — 6 tools for clinical data (ICD-10 codes, provider lookup)
+- **Butlr** — 6 tools for occupancy sensing (movement patterns)
+- **ESPHome** — Direct device control for ESP32
 
 ---
 
-## How to run
+## What to Do Next
+
+### Immediate (Next Session)
+
+1. **Deploy Open Wearables** — Self-hosted health data platform
+2. **Configure Home Assistant** — Connect smart home devices
+3. **Build Custom MCP** — Medication reminders, emergency alerts
+4. **Test Integration** — End-to-end flow with real users
+
+### Short-term (Next Week)
+
+5. **Prototype MVP** — ESP32-S3 + touchscreen + speaker
+6. **Test with 5 elderly users** — 2-week trial
+7. **Iterate based on feedback** — Refine UX, add features
+8. **Launch beta** — 100 units
+
+### Medium-term (Next Month)
+
+9. **Scale deployment** — 1000 units per month
+10. **Care home partnerships** — 5 care homes
+11. **NHS integration** — Clinical data sharing
+12. **Insurance partnerships** — Reduced premiums for monitored users
+
+---
+
+## Key Files
+
+### Code
+
+| File | What it does |
+|------|-------------|
+| `powrobots/cli.py` | CLI entry point (15 collectors, 10 commands) |
+| `powrobots/collectors/base.py` | Base collector with retry + raw storage |
+| `powrobots/collectors/mouser.py` | Mouser API integration |
+| `powrobots/collectors/farnell.py` | Farnell/element14 API integration |
+| `powrobots/collectors/lcsc.py` | LCSC API integration |
+| `powrobots/resolve.py` | BOM resolution + substitution engine |
+| `powrobots/mcp.py` | MCP server for Muse/ChatGPT integration |
+| `powrobots/sdk.py` | SDK for programmatic access |
+| `powrobots/shared/db.py` | Schema + seeds + source_health computation |
+| `powrobots/shared/persist.py` | Storage + entity graph operations |
+| `enclosures/generate.py` | Parametric STL enclosure generator |
+| `firmware/plant-sprite/main.py` | ESP32 firmware for plant monitoring |
+| `firmware/desk-goblin/main.py` | ESP32 firmware for desk companion |
+
+### Documentation
+
+| File | What it covers |
+|------|---------------|
+| `docs/vision.md` | MCP-first product vision + competitive landscape |
+| `docs/engines.md` | 5 engines mapped to 16+ products |
+| `docs/elderly-companion-engine.md` | New COMPANION engine spec |
+| `docs/mcp-integrations.md` | Home Assistant, Open Wearables, Patientary MCP |
+| `docs/brand-identity.md` | Glimlings brand identity |
+| `docs/platform.md` | Engines + community + marketplace architecture |
+| `docs/design-pipeline.md` | Blender MCP → POW MCP → manufacturing |
+| `docs/assembly-partners.md` | 8 real assembly partners with costs |
+| `docs/pipeline-graph.md` | Full pipeline graph with lead times |
+| `docs/NEXT_STEPS.md` | Priority-ordered actions |
+
+### Database
+
+| Path | What |
+|------|------|
+| `warehouse/powrobots.db` | SQLite database (all tables) |
+| `warehouse/raw/` | Raw collector data |
+| `seeds/component_basket.yml` | Component definitions |
+
+---
+
+## How to Extend
+
+### Add a New Engine
+
+1. Define engine name and capability
+2. List required components in `powrobots/seeds/component_basket.yml`
+3. Add components to database via `scripts/seed_loader.py`
+4. Create enclosure template in `enclosures/generate.py`
+5. Create firmware in `firmware/<engine-name>/main.py`
+6. Register as product in `product` table
+7. Add to MCP tools in `powrobots/mcp.py`
+
+### Add a New Product
+
+1. Choose engine combination (e.g. SENSE + ACT)
+2. Create enclosure design (Blender/OpenSCAD)
+3. Run `resolve_bom()` to verify parts exist
+4. Add to `product` table with pricing
+5. Add character variants to `product_variant` table
+6. Create Etsy listing template
+7. Test manufacturing pipeline (JLCPCB → JLC3DP → assembly)
+
+### Add a New Supplier
+
+1. Add to `source_rights` table (status: open/approved)
+2. Add to `source_registry` table (authority, cadence, tier)
+3. Add collector in `powrobots/collectors/<name>.py`
+4. Add to `COLLECTORS` dict in `cli.py`
+5. Run `powrobots seed` (idempotent)
+6. Run `powrobots collect <source>`
+7. powops sees it via collector_db
+
+---
+
+## Testing
+
+### Run Tests
 
 ```bash
-# Install
-pip install -e ".[dev]"
-
-# Initialize
-python3 -m powrobots.shared.db
-python3 -m powrobots.cli seed
-
-# Collect
-python3 -m powrobots.cli collect all
-python3 -m powrobots.cli collect hmrc_traders  # single source
-
-# Check
-python3 -m powrobots.cli health
-python3 -m powrobots.cli robots
-python3 -m powrobots.cli models
-
-# Test
 POWROBOTS_DB=/tmp/test.db python3 -m pytest tests/ -v
 ```
 
----
+### Current Test Results
 
-## Key decisions made
-
-1. **CSV over HTML for HMRC** — more reliable, structured, includes all 564 traders
-2. **Skip JS-rendered pages** — BARA, RBTX, apprenticeships need browser automation
-3. **Auto-compute source_health** — in log_run(), not separate step
-4. **Collection receipt format** — aligned with roadmap Phase 2
-5. **POWOps as operational surface** — no separate MCP server in powrobots
+- **powrobots**: 42/42 passing
+- **powops**: 69/69 passing
 
 ---
 
-## What powops sees
+## Deployment
+
+### VPS Location
+
+- **Path**: `/home/ubuntu/powrobots/`
+- **Database**: `/home/ubuntu/powrobots/warehouse/powrobots.db`
+- **Python**: 3.11+
+- **Dependencies**: Installed via `pip install -e ".[dev]"`
+
+### GitHub
+
+- **Repo**: `prx0r/powrobots`
+- **Latest commit**: `e9a9127`
+- **Token**: Available via environment variable
+
+---
+
+## Brand
+
+### Glimlings
+
+**Tagline**: "Little spirits for the things you love."
+
+- **Individual**: A Glimling
+- **Plural**: The collectible family
+- **Characters**: 10 (Mab, Nimbus, Puck, Boo Bloom, Pickles, etc.)
+- **Colours**: 9 (natural, earthy palette)
+
+### Avoid
+
+- **Piskies** — Cornish folklore, trademark risk
+- **Whimlings** — Already used by Whimside game
+
+---
+
+## The Vision
 
 ```
-powrobots: 10/15 ok | 5/15 no_key
-
-  ACTIVE:     hmrc_traders, hmrc_trade, ukri_gtr, contracts_finder,
-              opss_safety, bara_directory, bgs_minerals, ons_ppi,
-              find_apprenticeship, rbtx
-
-  NEEDS KEY:  companies_house (working), mouser, farnell, lcsc, ebay_uk
+Old person: "I'm lonely"
+    ↓
+POW: "I'll make you a Glimling companion"
+    ↓
+Design in Blender via Muse
+    ↓
+POW resolves parts + pricing
+    ↓
+Manufactured and shipped
+    ↓
+Connected to Home Assistant
+    ↓
+Muse checks in daily
+    ↓
+Social isolation reduced
 ```
 
-MCP: `powops_status(garden="powrobots")` returns all 15 with status, age, records.
+**The elderly companion is the highest-impact product.** It solves a real problem (loneliness), has a clear customer (care homes, families), and connects to existing MCP infrastructure (Home Assistant, wearables).
 
 ---
 
-## Contacts
+## Questions to Answer
 
-- Repository: https://github.com/prx0r/powrobots
-- Dashboard: https://admin.pow.systems
-- Sister repos: powpowpow, powuk, powstock, repair, powproducts, powphysical, powk, powops
+1. **How do we deploy Open Wearables on the VPS?**
+2. **How do we configure Home Assistant for elderly care?**
+3. **How do we build a custom MCP for medication reminders?**
+4. **How do we test with real elderly users?**
+5. **How do we scale to 1000 units per month?**
+
+---
+
+**Handover complete.** The next agent should start with deploying Open Wearables and configuring Home Assistant.

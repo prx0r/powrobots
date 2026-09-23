@@ -8,7 +8,7 @@ import json
 import os
 from datetime import datetime, timezone
 from powrobots.collectors.base import BaseCollector, CollectorResult
-from powrobots.shared.persist import insert_source_record, upsert_component
+from powrobots.shared.persist import insert_source_record, upsert_component, get_db
 
 
 class MouserCollector(BaseCollector):
@@ -22,8 +22,33 @@ class MouserCollector(BaseCollector):
     def fetch(self):
         if not self.api_key:
             return None
-        # Would search for tracked component MPNs
-        return None
+        
+        # Get tracked MPNs from component table
+        db = get_db()
+        cursor = db.execute("SELECT mpn FROM component WHERE mpn IS NOT NULL LIMIT 100")
+        mpns = [row[0] for row in cursor.fetchall() if row[0]]
+        
+        if not mpns:
+            return None
+        
+        # Search for first MPN (can be batched)
+        import requests
+        mpn = mpns[0]
+        url = f"https://api.mouser.com/api/v1/search/partnumber?apiKey={self.api_key}"
+        payload = {
+            "SearchByPartRequest": {
+                "mouserPartNumber": mpn,
+                "partSearchOptions": "BeginsWith"
+            }
+        }
+        
+        try:
+            response = requests.post(url, json=payload, timeout=30)
+            response.raise_for_status()
+            return response.text
+        except Exception as e:
+            print(f"Mouser API error: {e}")
+            return None
 
     def parse(self, raw_content, raw_hash, result):
         if not raw_content:
