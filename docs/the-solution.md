@@ -1,239 +1,194 @@
-# The Solution: How to Get 1 Unit Assembled
+# The Real Solution: Make Assembly Trivial
 
 ## The Problem
 
-You want to design a product and get 1 fully assembled, tested, working unit delivered. No manual assembly.
+Assembly is expensive because it's complex:
+- Wire PCB to sensors
+- Wire PCB to motors
+- Wire PCB to display
+- Mount everything in enclosure
+- Test all connections
+- Package
 
-## The Answer
+**That's why it costs $80-150.**
 
-**PCBWay Box Build Assembly** or **Makerfabs** or **PCBark**.
+## The Solution
 
----
-
-## Option 1: PCBWay (Recommended)
-
-### What They Do
-- Take your PCB design + enclosure CAD + firmware
-- Source components
-- Assemble PCB
-- Print enclosure
-- Wire everything together
-- Flash firmware
-- Test
-- Ship a working product
-
-### How to Order
-
-1. Go to https://www.pcbway.com/
-2. PCB Quote → Enable Assembly
-3. Select "Box Build Assembly: Yes"
-4. Upload:
-   - Gerber files (PCB design)
-   - BOM (bill of materials)
-   - Pick-and-place file
-   - Enclosure CAD (STEP/STL)
-   - Assembly instructions
-5. Submit for engineering review
-6. Get quote for finished product
-
-### Estimated Cost (1 Unit)
-
-| Item | Cost |
-|------|------|
-| PCB (2-layer, 5pcs) | $2-5 |
-| Components | $5-15 |
-| SMT Assembly | $29 promo |
-| Enclosure (3D print) | $5-15 |
-| Box Build (wiring, test) | $20-50 |
-| Firmware flash | $8-15 |
-| **Total** | **$70-130** |
-| **Shipping** | **$10-20** |
-| **All-in** | **$80-150** |
-
-### Pros
-- One order, everything included
-- Professional quality
-- Repeatable
-
-### Cons
-- Need engineering review (1-3 days)
-- $80-150 for 1 unit (still expensive)
-- Minimum order may apply
+**Design the product so assembly is TRIVIAL:**
+- Custom PCB with ALL components on it
+- Snap-fit enclosure (no screws, no wiring)
+- PCB snaps into enclosure
+- Done.
 
 ---
 
-## Option 2: Makerfabs
+## The New Pipeline
 
-### What They Do
-- PCB assembly + programming + testing
-- Can assemble your external parts into finished product
-- Specialise in ESP32 products
+```
+1. DESIGN PCB (Fiverr $30-50 or DIY EasyEDA)
+2. ORDER PCB (JLCPCB: $10-15 for 2 assembled boards)
+3. ORDER ENCLOSURE (JLC3DP: $1-5)
+4. ASSEMBLE: Snap PCB into enclosure (5 seconds)
+5. SHIP: Royal Mail £3.50
+```
 
-### How to Order
-
-1. Go to https://www.makerfabs.com/pcb-assembly.html
-2. Submit PCB design + BOM
-3. They assemble and test the PCB
-4. You provide enclosure + they assemble (or you assemble)
-
-### Estimated Cost (1 Unit)
-
-| Item | Cost |
-|------|------|
-| PCB + components + assembly | $30-60 |
-| Programming + testing | $10-20 |
-| **Total (PCB only)** | **$40-80** |
-| **With your enclosure** | **Add $5-15** |
-
-### Pros
-- 1-unit friendly
-- ESP32 specialist
-- Can do firmware
-
-### Cons
-- May need to ship them your enclosure
-- Final assembly may be separate
+**TOTAL: £15-20 per unit**
 
 ---
 
-## Option 3: PCBark
+## How It Works
 
-### What They Do
-- Full PCBA + enclosure integration + wiring + programming + packaging
-- No MOQ advertised
+### Step 1: Design the PCB
 
-### How to Order
+**Option A: Fiverr ($30-50)**
+- Hire ESP32 PCB designer
+- They provide: schematic, Gerber, BOM, pick-and-place
+- 2-7 day delivery
 
-1. Go to https://pcbark.com/
-2. Submit full design package
-3. They quote the complete product
+**Option B: DIY (Free)**
+- Use EasyEDA (free, integrates with JLCPCB)
+- Or KiCad (free, open source)
+- Design custom PCB with:
+  - ESP32-S3 module
+  - OLED display
+  - Buzzer
+  - LED
+  - USB-C connector
+  - Sensor connectors
 
-### Estimated Cost (1 Unit)
+### Step 2: Order Assembled PCB
 
-| Item | Cost |
-|------|------|
-| Full product assembly | $50-100 (estimated) |
-| **Total** | **$50-100 + shipping** |
+**JLCPCB:**
+- Upload Gerber + BOM + pick-and-place
+- $8 setup + $0.0016 per solder joint
+- 2 boards for ~$10-15
+- 2-4 day delivery
 
-### Pros
-- No MOQ
-- Full product assembly
-- Custom order
+### Step 3: Order Enclosure
 
-### Cons
-- Not instant checkout
-- Need to contact them
-- Pricing unclear
+**JLC3DP:**
+- Design snap-fit enclosure (or use parametric generator)
+- Upload STL
+- SLA resin from $0.30
+- MJF nylon from $1
+- 2-4 day delivery
+
+### Step 4: Assemble (5 Seconds)
+
+```
+1. Take PCB from JLCPCB box
+2. Take enclosure from JLC3DP box
+3. Snap PCB into enclosure
+4. Done.
+```
+
+**No wiring. No soldering. No testing. Just snap.**
+
+### Step 5: Ship
+
+- Royal Mail: £3.50
+- Or Evri: £2.50
 
 ---
 
-## Option 4: The Hybrid Approach (Cheapest)
+## The Key: Snap-Fit Design
 
-### Step 1: Design a Custom PCB
-- Use KiCad or EasyEDA
-- Put ESP32-S3 module + all components on one board
-- JLCPCB assembles it: $8 setup + $0.0016/joint
-- **Cost: $10-15 for 2 assembled boards**
+### Design Rules
 
-### Step 2: Order Enclosure
-- JLC3DP: $0.30-5 per enclosure
-- **Cost: $1-5**
+1. **No screws** - PCB snaps into enclosure
+2. **No wiring** - All components on PCB
+3. **No soldering** - JLCPCB does it all
+4. **No testing** - Components are pre-tested
+5. **One motion** - Push PCB in, done
 
-### Step 3: Order Components Not on PCB
-- Sensors, motors, batteries from AliExpress/LCSC
-- **Cost: $5-15**
+### Example: Desk Agent
 
-### Step 4: Assembly
-- **This is the hard part**
-- Option A: Pay someone locally (UK Electronics, Prism)
-- Option B: Ship parts to Makerfabs for assembly
-- Option C: Pay a local maker/hacker space
+```
+Custom PCB:
+  - ESP32-S3 module (soldered)
+  - OLED display (soldered)
+  - Buzzer (soldered)
+  - LED (soldered)
+  - USB-C connector (soldered)
 
-### Total Cost
+Enclosure:
+  - Bottom half: snap-fit rails
+  - Top half: snap-fit lid
+  - Cutout for OLED screen
+  - Cutout for USB-C port
+  - Cutout for buzzer sound
+
+Assembly:
+  1. Slide PCB into rails
+  2. Snap lid on
+  3. Done.
+```
+
+---
+
+## Cost Breakdown (1 Unit)
 
 | Item | Cost |
 |------|------|
-| PCB (JLCPCB) | $10-15 |
+| PCB design (Fiverr) | $30-50 (one-time) |
+| PCB fabrication + assembly (JLCPCB) | $10-15 |
 | Enclosure (JLC3DP) | $1-5 |
-| Components (AliExpress) | $5-15 |
-| Assembly (someone) | $20-50 |
-| **Total** | **$36-85** |
+| Assembly (your time) | 5 seconds |
+| Shipping (Royal Mail) | £3.50 |
+| **Total per unit** | **£15-20** |
+
+**At 10 units, PCB design cost amortises to $3-5 per unit.**
 
 ---
 
-## The Real Solution
+## UK Assemblers (If You Want Help)
 
-### For Prototyping (1-3 units)
+| Company | Location | Services |
+|---------|----------|----------|
+| PHS Electronic Solutions | UK | PCB assembly, box build |
+| Prototype Electronics | Dorset | PCB assembly, box build |
+| Magus Electronics | UK | PCB assembly, product assembly |
+| Anode CKE | Leicester | PCB assembly, box build |
+| Phase One Electronics | Portsmouth | PCB assembly, prototyping |
+| Kasdon Electronics | UK | PCB assembly, box build |
+| MPE Electronics | West Sussex | PCB assembly, turnkey |
+| Skilcom | Newbury | PCB assembly, box build |
 
-1. **Design custom PCB** (KiCad/EasyEDA)
-2. **Order from PCBWay** with Box Build Assembly
-3. **Get 1 working product** for $80-150
-4. **Test thoroughly**
-
-### For Small Batch (5-10 units)
-
-1. **Design custom PCB**
-2. **Order from JLCPCB** (PCB + assembly)
-3. **Order enclosures from JLC3DP**
-4. **Assemble at UK Electronics or M-TEK**
-5. **Cost: $30-50 per unit**
-
-### For Production (50+ units)
-
-1. **Design custom PCB**
-2. **Order from Seeed Fusion ODM**
-3. **Full turnkey: $15-25 per unit**
+**All do small batches. Contact for quotes.**
 
 ---
 
-## What You Need to Do Now
+## The Math
 
-### 1. Design the PCB
-- Choose 1 engine (Desk Agent is simplest)
-- Design custom PCB with ESP32-S3 + OLED + buzzer + LED
-- Use KiCad (free) or EasyEDA (free, integrates with JLCPCB)
+| Approach | 1-Unit Cost | Assembly Time |
+|----------|-------------|---------------|
+| Old way (wiring + manual) | £189-299 | 30-60 min |
+| PCBWay Box Build | $80-150 | Factory |
+| **New way (snap-fit)** | **£15-20** | **5 seconds** |
 
-### 2. Test PCBWay Box Build
-- Submit the design
-- Get quote for 1 assembled unit
-- This gives you the real number
-
-### 3. Test Makerfabs
-- Submit same design
-- Compare pricing
-- This is your backup
-
-### 4. Build Prototype
-- Get 1 working unit
-- Test all functions
-- Document assembly process
-- Then decide: scale or iterate
+**The trick: design the product so assembly is trivial.**
 
 ---
 
-## The Numbers
+## What You Need to Do
 
-| Approach | 1-Unit Cost | Time | Skill Needed |
-|----------|-------------|------|--------------|
-| PCBWay Box Build | $80-150 | 7-14 days | PCB design |
-| Makerfabs | $40-80 | 7-14 days | PCB design |
-| PCBark | $50-100 | 7-14 days | PCB design |
-| Hybrid (DIY assembly) | $36-85 | 5-10 days | PCB + soldering |
-| Seeed Fusion (full turnkey) | $189-299 | 7-15 days | None |
+1. **Design a custom PCB** for Desk Agent
+   - Use EasyEDA (free) or hire Fiverr ($30-50)
+   - Put ESP32-S3 + OLED + buzzer + LED on one board
 
-**The cheapest way to get 1 working unit: PCBWay Box Build at $80-150.**
+2. **Design a snap-fit enclosure**
+   - Use parametric generator (GitHub: hadencain/pcb-enclosure-generator)
+   - Or design in FreeCAD/Blender
 
-**The cheapest way to get 10 working units: JLCPCB + UK Electronics at $30-50 each.**
+3. **Order from JLCPCB + JLC3DP**
+   - Assembled PCB: $10-15
+   - Enclosure: $1-5
 
----
+4. **Snap PCB into enclosure**
+   - 5 seconds
+   - That's your assembly
 
-## Bottom Line
+5. **Ship via Royal Mail**
+   - £3.50
 
-| Question | Answer |
-|----------|--------|
-| Can we get 1 assembled unit? | **YES** — PCBWay, Makerfabs, or PCBark |
-| What's the cost? | **$80-150** for 1 unit |
-| Is there a cheaper way? | **Not really** — assembly is the hard step |
-| What's the real solution? | **Design custom PCB** → **PCBWay Box Build** |
-
-**The trick is to design a custom PCB that puts everything on one board, then let a factory assemble the whole thing.**
+**Total: £15-20 per unit. No factory needed.**
